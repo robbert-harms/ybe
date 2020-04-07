@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1  http://www.imsglobal.org/xsd/q,ti/qtiv2p1/imsqti_v2p1.xsd" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" identifier="QUE_1534038" title="oef1_test" adaptive="false" timeDependent="false">
+<responseDeclaration identifier="RESPONSE" cardinality="single" baseType="string"/>
+<outcomeDeclaration identifier="MODAL_ANSWER" cardinality="single" baseType="string">
+<defaultValue>
+<value>
+</value>
+</defaultValue>
+</outcomeDeclaration>
+<itemBody>&lt;div class="redactor-content"&gt;&lt;div&gt;Hoe beschrijf jij Robbert?&lt;/div&gt;&lt;/div&gt;<extendedTextInteraction base="1.0" expectedLength="0" maxStrings="0" minStrings="0" expectedLines="7" format="plain" responseIdentifier="RESPONSE"/>
+</itemBody>
+</assessmentItem>
+<to_str/>
+<to_str/>

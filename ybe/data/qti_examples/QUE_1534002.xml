@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assessmentItem xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/imsqti_v2p1  http://www.imsglobal.org/xsd/q,ti/qtiv2p1/imsqti_v2p1.xsd" xmlns="http://www.imsglobal.org/xsd/imsqti_v2p1" identifier="QUE_1534002" title="oef1_test" adaptive="false" timeDependent="false">
+<responseDeclaration identifier="RESPONSE" cardinality="single" basetype="identifier">
+<correctResponse>
+<value>choice1</value>
+</correctResponse>
+<mapping>
+<mapEntry mapKey="choice1" mappedValue="1.0"/>
+<mapEntry mapKey="choice2" mappedValue="0.0"/>
+<mapEntry mapKey="choice3" mappedValue="0.0"/>
+<mapEntry mapKey="choice4" mappedValue="0.0"/>
+</mapping>
+</responseDeclaration>
+<outcomeDeclaration identifier="SCORE" cardinality="single" basetype="float">
+<defaultValue>
+<value>0</value>
+</defaultValue>
+</outcomeDeclaration>
+<itemBody>
+<choiceInteraction responseIdentifier="RESPONSE" shuffle="false" maxChoices="1">
+<prompt>&lt;div class="redactor-content"&gt;&lt;div&gt;Hoe heet Robbert?&lt;/div&gt;&lt;/div&gt;</prompt>
+<simpleChoice identifier="choice1">&lt;div class="redactor-content"&gt;&lt;div&gt;Robbert Leonard Harms&lt;/div&gt;&lt;/div&gt;</simpleChoice>
+<simpleChoice identifier="choice2">&lt;div class="redactor-content"&gt;&lt;div&gt;Robocop&lt;/div&gt;&lt;/div&gt;</simpleChoice>
+<simpleChoice identifier="choice3">&lt;div class="redactor-content"&gt;&lt;div&gt;Trebbor&lt;/div&gt;&lt;/div&gt;</simpleChoice>
+<simpleChoice identifier="choice4">&lt;div class="redactor-content"&gt;&lt;div&gt;Covidiot&lt;/div&gt;&lt;/div&gt;</simpleChoice>
+</choiceInteraction>
+</itemBody>
+<responseProcessing template="http://www.imsglobal.org/question/qti_v2p1/rptemplates/match_correct" templateLocation="http://www.imsglobal.org/question/qti_v2p1/rptemplates/match_correct.xml"/>
+</assessmentItem>
+<to_str/>
+<to_str/>
