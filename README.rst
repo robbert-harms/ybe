@@ -1,7 +1,27 @@
-======================
+######################
 YBE - Yaml Based Exams
-======================
+######################
 
-Software package for managing the .ybe file format.
+Simple software package for storing exams.
 
-Amazing, such wow.
+
+*******
+Summary
+*******
+* Free software: LGPL v3 license
+* Full documentation: https://ybe.readthedocs.io
+* Project home: https://github.com/robbert-harms/ybe
+
+
+************************
+Quick installation guide
+************************
+
+
+**Linux**
+
+
+**Windows**
+
+
+**Mac**
