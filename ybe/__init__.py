@@ -15,4 +15,5 @@ from ybe.__version__ import VERSION, VERSION_STATUS, __version__
 - yaml reader and writer
 - write down format descriptions
     - i.e. which kind of values are allows and which are not
+- integrate yamllint as tester
 '''

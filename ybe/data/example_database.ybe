@@ -7,26 +7,39 @@ info:
     date: 2020-04-07
 ---
 type: multiple_choice
+id: '<some_random_string>'
 data:
     question: Hoe lief is Robbert?
     answers:
         - answer:
-            text: Aardig
+            text: Stom
             points: -1
+        - answer:
+            text: Aardig
+            points: 0.2
         - answer:
             text: Lief
         - answer:
             text: Superlief
             correct: True
             points: 1
-meta_data:
+meta_data: test
     thinking_type: knowledge
     related_concepts: [Brains, Body, Behaviour]
     chapter: 1
     difficulty: 10
-    used_in: [2020_qz1, 2020_qz2, 2020_final]
+analytics:
+    - exam:
+        name: 2020_qz1
+        participants: 1
+        nmr_correct: 0
+    - exam:
+        name: 2020_qz1
+        participants: 200
+        nmr_correct: 25
 ---
 type: multiple_choice
+id: '2013_q1'
 data:
     question: Hoe lief is Sanne?
     answers:
@@ -44,7 +57,11 @@ meta_data:
     related_concepts: [Brains, Body, Behaviour]
     chapter: 2
     difficulty: 2
-    used_in: [2020_qz1]
+analytics:
+    - exam:
+        name: 2020_qz1
+        participants: 1
+        nmr_correct: 0
 ---
 type: open
 data:
