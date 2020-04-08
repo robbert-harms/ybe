@@ -67,7 +67,7 @@ info_dict = dict(
     packages=find_packages(),
     include_package_data=True,
     install_requires=requirements,
-    license="LGPL v3",
+    license="GPL v3",
     zip_safe=False,
     keywords="ybe",
     classifiers=[
@@ -75,7 +75,7 @@ info_dict = dict(
         'Environment :: X11 Applications :: Qt',
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 or later (GPLv3+)',
         'Development Status :: 5 - Production/Stable',
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
