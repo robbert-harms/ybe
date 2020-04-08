@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="manifest" xmlns="http://www.imsglobal.org/xsd/imscp_v1p1" xmlns:imsmd="http://ltsc.ieee.org/xsd/LOM" xmlns:imsqti="http://www.imsglobal.org/xsd/imsqti_metadata_v2p1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:csm="http://www.imsglobal.org/xsd/imsccv1p2/imscsmd_v1p0" xsi:schemaLocation="http://www.imsglobal.org/xsd/imscp_v1p1 http://www.imsglobal.org/xsd/imscp_v1p2.xsd&#10;      http://ltsc.ieee.org/xsd/LOM imsmd_loose_v1p3.xsd&#10;      http://www.imsglobal.org/xsd/imsqti_metadata_v2p1 http://www.imsglobal.org/xsd/qti/qtiv2p1/imsqti_metadata_v2p1.xsd,&#10;      http://www.imsglobal.org/xsd/imsccv1p2/imscsmd_v1p0 http://www.imsglobal.org/profile/cc/ccv1p2/ccv1p2_imscsmd_v1p0.xsd">
+<metadata>
+<schema>IMS Content</schema>
+<schemaversion>1.2</schemaversion>
+<imsmd:lom>
+<imsmd:title>
+<imsmd:langstring xml:lang="en">
+</imsmd:langstring>
+</imsmd:title>
+<imsmd:language>en</imsmd:language>
+</imsmd:lom>
+</metadata>
+<organizations/>
+<resources>
+<resource identifier="test_1" type="imsqti_test_xmlv2p1" href="testitems/test_1.xml">
+<dependency identifierref="QUE_1534002"/>
+<dependency identifierref="QUE_1534038"/>
+</resource>
+<resource identifier="QUE_1534002" type="imsqti_test_xmlv2p1" href="testitems/QUE_1534002.xml">
+<metadata>
+<imsmd:lom>
+<imsmd:general>
+<imsmd:identifier>
+</imsmd:identifier>
+<imsmd:title>
+<imsmd:langstring xml:lang="en">
+</imsmd:langstring>
+</imsmd:title>
+</imsmd:general>
+</imsmd:lom>
+</metadata>
+</resource>
+<resource identifier="QUE_1534038" type="imsqti_test_xmlv2p1" href="testitems/QUE_1534038.xml">
+<metadata>
+<imsmd:lom>
+<imsmd:general>
+<imsmd:identifier>
+</imsmd:identifier>
+<imsmd:title>
+<imsmd:langstring xml:lang="en">
+</imsmd:langstring>
+</imsmd:title>
+</imsmd:general>
+</imsmd:lom>
+</metadata>
+</resource>
+</resources>
+</manifest>

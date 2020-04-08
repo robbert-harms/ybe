@@ -1,0 +1,62 @@
+ybe_version: 0.1.0
+info:
+    title: Example questions
+    description: Some examples to look up the way of describing questions.
+    document_version: 0.1.0
+    authors: [Robbert Harms, Sanne Schoenmakers]
+    date: 2020-04-07
+---
+type: multiple_choice
+data:
+    question: Hoe lief is Robbert?
+    answers:
+        - answer:
+            text: Aardig
+            points: -1
+        - answer:
+            text: Lief
+        - answer:
+            text: Superlief
+            correct: True
+            points: 1
+meta_data:
+    thinking_type: knowledge
+    related_concepts: [Brains, Body, Behaviour]
+    chapter: 1
+    difficulty: 10
+    used_in: [2020_qz1, 2020_qz2, 2020_final]
+---
+type: multiple_choice
+data:
+    question: Hoe lief is Sanne?
+    answers:
+        - answer:
+            text: Aardig
+            points: -1
+        - answer:
+            text: Lief
+        - answer:
+            text: Superlief
+            correct: True
+            points: 1
+meta_data:
+    thinking_type: insight
+    related_concepts: [Brains, Body, Behaviour]
+    chapter: 2
+    difficulty: 2
+    used_in: [2020_qz1]
+---
+type: open
+data:
+    question: Wat zou je meer willen zien bij Robbert?
+    max_words: 1000
+    min_words: 100
+    expected_words: 500
+    expected_lines: 7
+meta_data:
+    thinking_type: knowledge
+    related_concepts: Body
+    chapter: 3
+    difficulty: 5
+    used_in:
+        - 2020_qz2
