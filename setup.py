@@ -53,6 +53,7 @@ def load_entry_points():
 
     return entry_points
 
+
 info_dict = dict(
     name='ybe',
     version=ver_dic["VERSION"],
@@ -113,7 +114,7 @@ class PrepareDebianDist(Command):
             copyright_info = file.read()
 
         copyright_info = copyright_info.replace('{{source}}', info_dict['url'])
-        copyright_info = copyright_info.replace('{{years}}', '2016-2017')
+        copyright_info = copyright_info.replace('{{years}}', '2020-2021')
         copyright_info = copyright_info.replace('{{author}}', info_dict['author'])
         copyright_info = copyright_info.replace('{{email}}', info_dict['author_email'])
 

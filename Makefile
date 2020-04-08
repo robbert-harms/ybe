@@ -3,7 +3,7 @@ PIP=$$(which pip3)
 PROJECT_NAME=ybe
 PROJECT_VERSION=$$($(PYTHON) setup.py --version)
 GPG_SIGN_KEY=0E1AA560
-UBUNTU_DISTRIBUTIONS=xenial bionic
+UBUNTU_DISTRIBUTIONS=bionic
 
 .PHONY: help
 help:
