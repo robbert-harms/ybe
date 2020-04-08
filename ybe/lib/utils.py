@@ -5,21 +5,7 @@ __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
 
-class Question:
+def load_ybe_file(fname):
     ...
 
 
-class QuestionMetaData:
-    ...
-
-
-class MultipleChoice(Question):
-    ...
-
-
-class Answer:
-    ...
-
-
-class OpenQuestion(Question):
-    ...
