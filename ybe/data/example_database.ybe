@@ -3,7 +3,7 @@ info:
     title: Example questions
     description: Some examples to look up the way of describing questions.
     document_version: 0.1.0
-    authors: [Robbert Harms, Sanne Schoenmakers
+    authors: [Robbert Harms, Sanne Schoenmakers]
     date: 2020-04-07
 ---
 type: multiple_choice
@@ -23,7 +23,7 @@ data:
             text: Superlief
             correct: True
             points: 1
-meta_data: test
+meta_data:
     thinking_type: knowledge
     related_concepts: [Brains, Body, Behaviour]
     chapter: 1

@@ -63,15 +63,6 @@ def get_logging_configuration_dict():
     return _config['logging']['info_dict']
 
 
-def get_yamllint_config():
-    """Get the configuration for the Yaml Linter
-
-    Returns:
-        str: the yaml lint configuration string
-    """
-    return yaml.dump(_config['yamllint_config'])
-
-
 def set_config_option(option_name, value):
     """Set the current configuration option for the given option name.
 
@@ -244,13 +235,6 @@ class ConfigSectionLoader:
         """
 
 
-class YamlLintLoader(ConfigSectionLoader):
-    """Loads the YamlLint config"""
-
-    def load(self, value):
-        _config_insert(['yamllint_config'], value)
-
-
 class LoggingLoader(ConfigSectionLoader):
     """Loader for the top level key logging. """
 
@@ -274,9 +258,6 @@ def get_section_loader(section):
     Returns:
         ConfigSectionLoader: the config section loader for this top level section of the configuration.
     """
-    if section == 'yamllint_config':
-        return YamlLintLoader()
-
     if section == 'logging':
         return LoggingLoader()
 
