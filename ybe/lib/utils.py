@@ -5,27 +5,60 @@ __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
 
-def load_ybe_file(fname):
-    ...
+from ybe.lib.ybe_parser import load_ybe_string
+from ybe.lib.ybe_writer import write_ybe_string
 
-    # todo deal with syntax errors (yaml)
-    # todo deal with semantic errors (i.e. questions not well formed)
 
-    '''semantics:
+def load(fname):
+    """Load the data from the provided .ybe file and return an :class:`ybe.lib.ybe_contents.YbeFile` object.
 
-    1. a header must be present, like:
+    Args:
+        fname (str): the filename of the .ybe file to load
 
-        ybe_version: 0.1.0
-        info:
-            title: Example questions
-            description: Some examples to look up the way of describing questions.
-            document_version: 0.1.0
-            authors: [Robbert Harms, Sanne Schoenmakers]
-            date: 2020-04-07
+    Returns:
+        ybe.lib.ybe_contents.YbeFile: the contents of the .ybe file.
 
-    2. each question is separated by ---
-    3. each question must have a 'type'
-    4. multiple choice questions must have at least one answer with 'correct: True'
-    '''
+    Raises:
+        ybe.lib.errors.YbeLoadingError: if the file could not be loaded due to syntax errors
+    """
+    with open(fname, "r") as f:
+        return loads(f.read())
 
+
+def loads(ybe_str):
+    """Load the data from the provided Ybe formatted string and return an :class:`ybe.lib.ybe_contents.YbeFile` object.
+
+    Args:
+        ybe_str (str): an .ybe formatted string to load
+
+    Returns:
+        ybe.lib.ybe_contents.YbeFile: the contents of the .ybe file.
+
+    Raises:
+        ybe.lib.errors.YbeLoadingError: if the file could not be loaded due to syntax errors
+    """
+    return load_ybe_string(ybe_str)
+
+
+def dumps(ybe_file):
+    """Dump the provided ybe file as a .ybe formatted string.
+
+    Args:
+        ybe_file (ybe.lib.ybe_file.YbeFile): the ybe file contents to dump
+
+    Returns:
+        str: an .ybe formatted string
+    """
+    return write_ybe_string(ybe_file)
+
+
+def dump(ybe_file, fname):
+    """Dump the provided Ybe file to the indicated file.
+
+    Args:
+        ybe_file (ybe.lib.ybe_file.YbeFile): the ybe file contents to dump
+        fname (str): the filename to dump to
+    """
+    with open(fname, 'w') as f:
+        f.write(dumps(ybe_file))
 
