@@ -6,145 +6,184 @@ __maintainer__ = 'Robbert Harms'
 __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
-from dataclasses import dataclass, field
-from typing import Dict, Tuple, Sequence, List
+from dataclasses import dataclass
+from typing import List
+
+
+class YbeNode:
+    """Basic inheritance class for all Ybe related content nodes."""
+    pass
 
 
 @dataclass
-class YbeFile:
+class YbeFile(YbeNode):
     """Representation of an Ybe file.
 
     An Ybe file basically consists of a header followed of a number of questions.
     """
-    file_info: YbeFileInfo = field(default_factory=lambda: YbeFileInfo)
-    questions: List[Question] = field(default_factory=list)
+    file_info: YbeFileInfo = None
+    questions: List[Question] = None
+
+    def __post_init__(self):
+        self.file_info = self.file_info or YbeFileInfo()
+        self.questions = self.questions or []
+
+    def __str__(self):
+        """Prints itself in Ybe Yaml format."""
+        from ybe.lib.utils import dumps
+        return dumps(self)
 
 
 @dataclass
-class YbeFileInfo:
+class YbeFileInfo(YbeNode):
     """The header information in a Ybe file."""
-    title: str = ''
-    description: str = ''
-    document_version: str = ''
-    authors: List[str] = field(default_factory=list)
+    title: str = None
+    description: str = None
+    document_version: str = None
+    authors: List[str] = None
     creation_date: str = None
 
-a = YbeFile()
-print()
-
-    # def __init__(self, title=None, description=None, document_version=None, authors=None, creation_date=None):
-    #     """Contains meta information about an Ybe file.
-    #
-    #     Args:
-    #         title (str): a one-line description of the contents of this file
-    #         description (str): a longer description regarding the questions in this file
-    #         document_version (str): an version identifier, should be of the format ``<number>.<number>.<number>``.
-    #             For example: '0.1.4'.
-    #         authors (List[str]): list of the authors
-    #         creation_date (str): the date at which this file was created
-    #     """
-    #     self.title = title
-    #     self.description = description
-    #     self.document_version = document_version
-    #     self.authors = authors
-    #     self.creation_date = creation_date
+    def __post_init__(self):
+        self.authors = self.authors or []
 
 
-class Question:
+@dataclass
+class Question(YbeNode):
+    id: str = ''
+    text: TextBlock = None
+    meta_data: QuestionMetaData = None
+    analytics: QuestionAnalytics = None
 
-    def __init__(self, id=None, text=None, meta_data=None):
-        """Basic question information.
-
-        Args:
-            id (str): an identifier for this question
-            text (QuestionText): the text of the question
-            meta_data (QuestionMetaData): the meta data of this question
-        """
-        self.id = id
-        self.text = text or RegularText()
-        self.meta_data = meta_data or QuestionMetaData()
+    def __post_init__(self):
+        self.id = self.id or ''
+        self.text = self.text or Text()
+        self.meta_data = self.meta_data or QuestionMetaData()
+        self.analytics = self.analytics or QuestionAnalytics()
 
 
+@dataclass
 class MultipleChoice(Question):
+    answers: List[MultipleChoiceAnswer] = None
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __post_init__(self):
+        self.answers = self.answers or []
+
+    def nmr_correct_answers(self):
+        """Get the number of answers marked as ``correct.``.
+
+        Returns:
+            int: the number of correct answers in this question
+        """
+        return sum(answer.correct for answer in self.answers)
 
 
+@dataclass
 class OpenQuestion(Question):
+    options: OpenQuestionOptions = None
 
-    def __init__(self, options=None, **kwargs):
-        super().__init__(**kwargs)
-        self.options = options or OpenQuestionOptions()
-
-
-class QuestionMetaData:
-
-    def __init__(self, general=None, lifecycle=None, classification=None):
-        self.general = general or GeneralQuestionMetaData()
-        self.lifecycle = lifecycle or LifecycleQuestionMetaData()
-        self.classification = classification or ClassificationQuestionMetaData()
+    def __post_init__(self):
+        self.options = self.options or OpenQuestionOptions()
 
 
-class GeneralQuestionMetaData:
+@dataclass
+class MultipleChoiceAnswer(YbeNode):
+    text: TextBlock = None
+    points: float = None
+    correct: bool = None
 
-    def __init__(self, description=None, keywords=None, language=None):
-        self.description = description
-        self.keywords = keywords
-        self.language = language
-
-
-class LifecycleQuestionMetaData:
-
-    def __init__(self, author=None):
-        self.author = author
+    def __post_init__(self):
+        self.text = self.text or Text()
+        self.points = self.points or 0
+        self.correct = self.correct or False
 
 
-class ClassificationQuestionMetaData:
+@dataclass
+class QuestionMetaData(YbeNode):
+    general: GeneralQuestionMetaData = None
+    lifecycle: LifecycleQuestionMetaData = None
+    classification: ClassificationQuestionMetaData = None
 
-    def __init__(self, skill_level=None, related_concepts=None, module=None, chapter=None, difficulty=None):
-        """
-
-        Args:
-            skill_level (str): one of {Knowledge, Comprehension, Application, Analysis, Synthesis, Evaluation}
-            related_concepts (List[str]): list of related concepts / topics
-            module (str): the book or module this question is about
-            chapter (int): the chapter the work is about
-            difficulty (int): the difficulty level from 1 to 10, with 10 being the hardest
-        """
-        self.skill_level = skill_level
-        self.related_concepts = related_concepts
-        self.module = module
-        self.chapter = chapter
-        self.difficulty = difficulty
+    def __post_init__(self):
+        self.general = self.general or GeneralQuestionMetaData()
+        self.lifecycle = self.lifecycle or LifecycleQuestionMetaData()
+        self.classification = self.classification or ClassificationQuestionMetaData()
 
 
-class QuestionText:
+@dataclass
+class GeneralQuestionMetaData(YbeNode):
+    description: str = None
+    keywords: List[str] = None
+    language: str = 'en'
 
-    def __init__(self, text=None):
-        self.text = text or ''
+    def __post_init__(self):
+        self.keywords = self.keywords or []
 
 
-class RegularText(QuestionText):
+@dataclass
+class LifecycleQuestionMetaData(YbeNode):
+    author: str = None
+
+
+@dataclass
+class ClassificationQuestionMetaData(YbeNode):
+    """The skill level and difficulty of the question.
+
+    Args:
+        skill_level (str): one of {Knowledge, Comprehension, Application, Analysis, Synthesis, Evaluation}
+        related_concepts (List[str]): list of related concepts / topics
+        module (str): the book or module this question is about
+        chapter (int): the chapter the work is about
+        difficulty (int): the difficulty level from 1 to 10, with 10 being the hardest
+    """
+    skill_level: str = None
+    related_concepts: List[str] = None
+    module: str = None
+    chapter: int = None
+    difficulty: int = None
+
+    available_skill_levels = ['Knowledge', 'Comprehension', 'Application', 'Analysis', 'Synthesis', 'Evaluation']
+
+    def __post_init__(self):
+        self.related_concepts = self.related_concepts or []
+
+
+@dataclass
+class TextBlock(YbeNode):
+    text: str = ''
+
+
+@dataclass
+class Text(TextBlock):
+    """Text without any formatting."""
     pass
 
 
-class LatexText(QuestionText):
+@dataclass
+class TextLatex(TextBlock):
+    """Text in Latex format."""
     pass
 
 
-class OpenQuestionOptions:
+@dataclass
+class OpenQuestionOptions(YbeNode):
+    """Options concerning an open question.
 
-    def __init__(self, max_words=None, min_words=None, expected_words=None, expected_lines=None):
-        """Simple open questions information object.
+    Args:
+        max_words (int): the maximum number of allowed words
+        min_words (int): the minimum number of allowed words
+        expected_words (int): the expected number of words (size hint)
+        expected_lines (int): the number of lines expected to be typed (size hint)
+    """
+    max_words: int = None
+    min_words: int = None
+    expected_words: int = None
+    expected_lines: int = None
 
-        Args:
-            max_words (int): the maximum number of allowed words
-            min_words (int): the minimum number of allowed words
-            expected_words (int): the expected number of words (size hint)
-            expected_lines (int): the number of lines expected to be typed (size hint)
-        """
-        self.max_words = max_words
-        self.min_words = min_words
-        self.expected_words = expected_words
-        self.expected_lines = expected_lines
+
+@dataclass
+class QuestionAnalytics(YbeNode):
+    """Analytics about this question, e.g. usage statistics."""
+    analytics: List[dict] = None
+
+    def __post_init__(self):
+        self.analytics = self.analytics or []

@@ -5,8 +5,20 @@
     - points for correct answer
 - implement warnings system
 
+'''
+#todo
+- raise exception when a multiple choice question does not have an answer marked as 'correct'
+- gui?
+- query functions
+- yaml reader and writer
+- write down format descriptions
+    - i.e. which kind of values are allows and which are not
+- integrate yamllint as tester
+'''
+
 Suggestion from Sanne:
     - every MC question **must have** points
+    - documentation
 
 
 - look at text2qti for how to write the QTI files
