@@ -1,3 +1,6 @@
+- add test
+    - load and write the example yaml file and see if files are the same
+
 - scoring form
 - export to latex (add option to print question ID or not)
 - warning if multiple choice question has no:

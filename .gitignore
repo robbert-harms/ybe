@@ -56,3 +56,22 @@ docs/_build
 /debian/control
 /debian/rules
 /debian/watch
+
+
+
+#######################
+# Latex related ignores
+#######################
+## Core latex/pdflatex auxiliary files:
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+*.synctex.gz
