@@ -10,7 +10,8 @@ from ruamel.yaml import scalarstring
 from ruamel.yaml.comments import CommentedSeq
 
 from ybe.__version__ import __version__
-from ybe.lib.ybe_contents import OpenQuestion, MultipleChoice, Text, TextLatex
+from ybe.lib.errors import YbeVisitingError
+from ybe.lib.ybe_contents import YbeNodeVisitor
 
 
 def write_ybe_string(ybe_file, minimal=False):
@@ -24,21 +25,8 @@ def write_ybe_string(ybe_file, minimal=False):
     Returns:
         str: an .ybe (Yaml) formatted string
     """
-
-    a = CommentedSeq(ybe_file.file_info.authors)
-    a.fa.set_flow_style()
-
-    content = {
-        'ybe_version': __version__,
-        'info': {
-            'title': ybe_file.file_info.title,
-            'description': ybe_file.file_info.description,
-            'authors': ybe_file.file_info.authors,
-            'document_version': ybe_file.file_info.document_version,
-            'creation_date': ybe_file.file_info.creation_date,
-        },
-        'questions': _convert_questions(ybe_file.questions)
-    }
+    visitor = YbeConversionVisitor(minimal=minimal)
+    content = visitor.visit(ybe_file)
 
     yaml = YAML(typ='rt')
     yaml.default_flow_style = False
@@ -75,141 +63,185 @@ def write_ybe_string(ybe_file, minimal=False):
     return result.getvalue()
 
 
-def _convert_questions(node):
-    """Convert the given list of :class:`ybe.lib.ybe_contents.Question` items to a dictionary.
+class YbeConversionVisitor(YbeNodeVisitor):
 
-    Args:
-        node (List[ybe.lib.ybe_contents.Question]): the questions to convert
+    def __init__(self, minimal=False):
+        """Converts an YbeFile into a Python dictionary.
 
-    Returns:
-        List[dict]: the questions as a dictionary
-    """
-    return [_convert_question(el) for el in node]
+        Args:
+            minimal (boolean): if set to True we only print the configured options.
+                By default this flag is False, meaning we print all the available options, if needed with null placeholders.
+        """
+        self.minimal = minimal
 
+    def visit(self, node):
+        method = f'_visit_{node.__class__.__name__}'
+        if not hasattr(self, method):
+            raise YbeVisitingError(f'Unknown node encountered of type {type(node)}.')
+        return getattr(self, method)(node)
 
-def _convert_question(node):
-    """Convert the given :class:`ybe.lib.ybe_contents.Question` into a dictionary.
+    def _visit_YbeFile(self, node):
+        content = {'ybe_version': __version__}
 
-    Args:
-        node (ybe.lib.ybe_contents.Question): the question to convert
+        if len(info := self.visit(node.file_info)) or not self.minimal:
+            content['info'] = info
 
-    Returns:
-        dict: the question as a dictionary
-    """
-    question_types = {
-        MultipleChoice: ('multiple_choice', _convert_multiple_choice),
-        OpenQuestion: ('open', _convert_open_question)
-    }
+        content['questions'] = [self.visit(question) for question in node.questions]
+        return content
 
-    key, converter = question_types.get(node.__class__, None)
-    return {key: converter(node)}
+    def _visit_YbeFileInfo(self, node):
+        info = {}
 
+        for item in ['title', 'description', 'document_version', 'creation_date']:
+            if (value := getattr(node, item)) is not None or not self.minimal:
+                info[item] = value
 
-def _convert_multiple_choice(node):
-    """Convert the given :class:`ybe.lib.ybe_contents.MultipleChoice` into a dictionary.
+        if len(value := node.authors) or not self.minimal:
+            info['authors'] = value
 
-    Args:
-        node (ybe.lib.ybe_contents.MultipleChoice): the question to convert
+        return info
 
-    Returns:
-        dict: the question as a dictionary
-    """
-    data = {'id': node.id}
-    data.update(_convert_text_from_node(node.text))
-    data.update({
-        'answers': _convert_multiple_choice_answers(node.answers),
-        'meta_data': _convert_meta_data(node.meta_data)})
-    return data
+    def _visit_MultipleChoice(self, node):
+        """Convert the given :class:`ybe.lib.ybe_contents.MultipleChoice` into a dictionary.
 
+        Args:
+            node (ybe.lib.ybe_contents.MultipleChoice): the question to convert
 
-def _convert_open_question(node):
-    """Convert the given :class:`ybe.lib.ybe_contents.OpenQuestion` into a dictionary.
+        Returns:
+            dict: the question as a dictionary
+        """
+        data = {'id': node.id}
+        data.update(self.visit(node.text))
+        data['answers'] = [{'answer': self.visit(el)} for el in node.answers]
 
-    Args:
-        node (ybe.lib.ybe_contents.OpenQuestion): the question to convert
+        if len(meta_data := self.visit(node.meta_data)) or not self.minimal:
+            data['meta_data'] = meta_data
 
-    Returns:
-        dict: the question as a dictionary
-    """
-    data = {'id': node.id}
-    data.update(_convert_text_from_node(node.text))
-    data.update({
-        'options': node.options.__dict__,
-        'meta_data': _convert_meta_data(node.meta_data)})
-    return data
+        return {'multiple_choice': data}
 
+    def _visit_OpenQuestion(self, node):
+        """Convert the given :class:`ybe.lib.ybe_contents.OpenQuestion` into a dictionary.
 
-def _convert_multiple_choice_answers(node):
-    """Convert the multiple choice answers
+        Args:
+            node (ybe.lib.ybe_contents.OpenQuestion): the question to convert
 
-    Args:
-        node (List[ybe.lib.ybe_contents.MultipleChoiceAnswer]): the multiple choice answers to convert to text.
+        Returns:
+            dict: the question as a dictionary
+        """
+        data = {'id': node.id}
+        data.update(self.visit(node.text))
 
-    Returns:
-        List[dict]: the converted answers
-    """
-    dicts = []
-    for item in node:
+        if len(options := self.visit(node.options)) or not self.minimal:
+            data['options'] = options
+
+        if len(meta_data := self.visit(node.meta_data)) or not self.minimal:
+            data['meta_data'] = meta_data
+
+        return {'open': data}
+
+    def _visit_Text(self, node):
+        return {'text': self._yaml_format_text(node.text)}
+
+    def _visit_TextLatex(self, node):
+        return {'text_latex': self._yaml_format_text(node.text)}
+
+    def _visit_MultipleChoiceAnswer(self, node):
+        """Convert a single multiple choice answer
+
+        Args:
+            node (ybe.lib.ybe_contents.MultipleChoiceAnswer): the multiple choice answers to convert to text.
+
+        Returns:
+            dict: the converted answer
+        """
         data = {}
-        data.update(_convert_text_from_node(item.text))
-        data['points'] = item.points
-        if item.correct:
-            data['correct'] = item.correct
-        dicts.append({'answer': data})
-    return dicts
+        data.update(self.visit(node.text))
+        data['points'] = node.points
+        if node.correct:
+            data['correct'] = node.correct
+        return data
 
+    def _visit_OpenQuestionOptions(self, node):
+        if self.minimal:
+            return {k: v for k, v in node.__dict__.items() if v is not None}
+        return node.__dict__
 
-def _convert_text_from_node(node):
-    """Convert the question text.
+    def _visit_QuestionMetaData(self, node):
+        """Convert the meta data object into a dictionary.
 
-    Args:
-        node (ybe.lib.ybe_contents.TextBlock): the text object to convert to a dict text element
+        Args:
+            node (ybe.lib.ybe_contents.QuestionMetaData): the text object to convert to a dict text element
 
-    Returns:
-        dict: the converted node
-    """
-    def format_text(text):
+        Returns:
+            dict: the converted node
+        """
+        result = {}
+
+        if len(general := self.visit(node.general)) or not self.minimal:
+            result['general'] = general
+
+        if len(lifecycle := self.visit(node.lifecycle)) or not self.minimal:
+            result['lifecycle'] = lifecycle
+
+        if len(classification := self.visit(node.classification)) or not self.minimal:
+            result['classification'] = classification
+
+        if len(analytics := self.visit(node.analytics)) or not self.minimal:
+            result['analytics'] = analytics
+
+        return result
+
+    def _visit_GeneralQuestionMetaData(self, node):
+        data = node.__dict__
+        data['keywords'] = self._yaml_inline_list(data['keywords'])
+
+        if self.minimal:
+            minimal_data = {k: v for k, v in data.items() if v is not None}
+
+            if not len(data['keywords']):
+                del minimal_data['keywords']
+            return minimal_data
+
+        return data
+
+    def _visit_AnalyticsQuestionMetaData(self, node):
+        return node.analytics
+
+    def _visit_ClassificationQuestionMetaData(self, node):
+        data = node.__dict__
+        data['related_concepts'] = self._yaml_inline_list(data['related_concepts'])
+
+        if self.minimal:
+            minimal_data = {k: v for k, v in data.items() if v is not None}
+
+            if not len(data['related_concepts']):
+                del minimal_data['related_concepts']
+            return minimal_data
+
+        return data
+
+    def _visit_LifecycleQuestionMetaData(self, node):
+        data = node.__dict__
+        if self.minimal:
+            return {k: v for k, v in data.items() if v is not None}
+        return node.__dict__
+
+    @staticmethod
+    def _yaml_format_text(text):
         if '\n' in text:
             return scalarstring.PreservedScalarString(text)
         return text
 
-    text_modes = {
-        Text: lambda el: {'text': format_text(el)},
-        TextLatex: lambda el: {'text_latex': format_text(el)},
-    }
-    return text_modes[node.__class__](node.text)
+    @staticmethod
+    def _yaml_inline_list(l):
+        """Return a list wrapped in a ruamal yaml block, such that the list will be displayed inline.
 
+        Args:
+            l (list): the list to wrap
 
-def _convert_meta_data(node):
-    """Convert the meta data object into a dictionary.
-
-    Args:
-        node (ybe.lib.ybe_contents.QuestionMetaData): the text object to convert to a dict text element
-
-    Returns:
-        dict: the converted node
-    """
-    classification = node.classification.__dict__
-    classification['related_concepts'] = _inline_list(classification['related_concepts'])
-
-    general = node.general.__dict__
-    general['keywords'] = _inline_list(general['keywords'])
-
-    return {'general': general,
-            'lifecycle': node.lifecycle.__dict__,
-            'classification': classification,
-            'analytics': node.analytics.analytics}
-
-
-def _inline_list(l):
-    """Return a list wrapped in a ruamal yaml block, such that the list will be displayed inline.
-
-    Args:
-        l (list): the list to wrap
-
-    Returns:
-        CommentedSeq: the commented list with the flow style set to True
-    """
-    wrapped = CommentedSeq(l)
-    wrapped.fa.set_flow_style()
-    return wrapped
+        Returns:
+            CommentedSeq: the commented list with the flow style set to True
+        """
+        wrapped = CommentedSeq(l)
+        wrapped.fa.set_flow_style()
+        return wrapped

@@ -3,13 +3,35 @@ ybe_version: 0.1.0
 info:
     title: Example questions
     description: Some examples of describing questions.
+    document_version: 0.1.0
+    creation_date: 2020-04-07
     authors:
         - Robbert Harms
         - Sanne Schoenmakers
-    document_version: 0.1.0
-    creation_date: 2020-04-07
 
 questions:
+- open:
+    id: '#2003_2'
+    text: This open question does not have any meta data or options.
+
+- multiple_choice:
+    id: 2013_q2
+    text: This question also does not have any meta data.
+    answers:
+        - answer:
+            text: Isaac Newton
+            points: 0
+        - answer:
+            text: Niels Bohr
+            points: 0
+        - answer:
+            text: Richard Feynman
+            points: 0
+        - answer:
+            text: Albert Einstein
+            points: 1
+            correct: true
+
 - multiple_choice:
     id: <some_random_string>
     text: |-
@@ -123,25 +145,3 @@ questions:
                 name: 2020_qz1
                 participants: 1
                 nmr_correct: 0
-
-- open:
-    id: '#2003_2'
-    text: This question does not have any meta data or options.
-
-- multiple_choice:
-    id: 2013_q2
-    text: This question also does not have any meta data.
-    answers:
-        - answer:
-            text: Isaac Newton
-            points: 0
-        - answer:
-            text: Niels Bohr
-            points: 0
-        - answer:
-            text: Richard Feynman
-            points: 0
-        - answer:
-            text: Albert Einstein
-            points: 1
-            correct: true

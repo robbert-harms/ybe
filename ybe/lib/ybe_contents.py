@@ -17,10 +17,21 @@ class YbeNode:
         """Ybe nodes support the ``visitor pattern`` to allow for document traversal.
 
         Args:
-            visitor (obj): object with at least the method ``visit``, which will be called with as single
-                argument this object itself.
+            visitor (YbeNodeVisitor): the visitor we will give a callback.
         """
         visitor.visit(self)
+
+
+class YbeNodeVisitor:
+    """Interface class for a node visitor, part of the ``visitor`` design pattern."""
+
+    def visit(self, node):
+        """Visit method, called by the node which accepted this visitor.
+
+        Args:
+            node (YbeNode): the node being visited.
+        """
+        raise NotImplementedError()
 
 
 @dataclass
@@ -121,7 +132,7 @@ class QuestionMetaData(YbeNode):
 class GeneralQuestionMetaData(YbeNode):
     description: str = None
     keywords: List[str] = None
-    language: str = 'en'
+    language: str = None
 
     def __post_init__(self):
         self.keywords = self.keywords or []
