@@ -12,7 +12,15 @@ from typing import List
 
 class YbeNode:
     """Basic inheritance class for all Ybe related content nodes."""
-    pass
+
+    def accept_visitor(self, visitor):
+        """Ybe nodes support the ``visitor pattern`` to allow for document traversal.
+
+        Args:
+            visitor (obj): object with at least the method ``visit``, which will be called with as single
+                argument this object itself.
+        """
+        visitor.visit(self)
 
 
 @dataclass
@@ -52,13 +60,11 @@ class Question(YbeNode):
     id: str = ''
     text: TextBlock = None
     meta_data: QuestionMetaData = None
-    analytics: QuestionAnalytics = None
 
     def __post_init__(self):
         self.id = self.id or ''
         self.text = self.text or Text()
         self.meta_data = self.meta_data or QuestionMetaData()
-        self.analytics = self.analytics or QuestionAnalytics()
 
 
 @dataclass
@@ -102,11 +108,13 @@ class QuestionMetaData(YbeNode):
     general: GeneralQuestionMetaData = None
     lifecycle: LifecycleQuestionMetaData = None
     classification: ClassificationQuestionMetaData = None
+    analytics: AnalyticsQuestionMetaData = None
 
     def __post_init__(self):
         self.general = self.general or GeneralQuestionMetaData()
         self.lifecycle = self.lifecycle or LifecycleQuestionMetaData()
         self.classification = self.classification or ClassificationQuestionMetaData()
+        self.analytics = self.analytics or AnalyticsQuestionMetaData()
 
 
 @dataclass
@@ -148,6 +156,15 @@ class ClassificationQuestionMetaData(YbeNode):
 
 
 @dataclass
+class AnalyticsQuestionMetaData(YbeNode):
+    """Analytics about this question, e.g. usage statistics."""
+    analytics: List[dict] = None
+
+    def __post_init__(self):
+        self.analytics = self.analytics or []
+
+
+@dataclass
 class TextBlock(YbeNode):
     text: str = ''
 
@@ -178,12 +195,3 @@ class OpenQuestionOptions(YbeNode):
     min_words: int = None
     expected_words: int = None
     expected_lines: int = None
-
-
-@dataclass
-class QuestionAnalytics(YbeNode):
-    """Analytics about this question, e.g. usage statistics."""
-    analytics: List[dict] = None
-
-    def __post_init__(self):
-        self.analytics = self.analytics or []

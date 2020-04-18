@@ -2,7 +2,7 @@ ybe_version: 0.1.0
 
 info:
     title: Example questions
-    description: Some examples to look up the way of describing questions.
+    description: Some examples of describing questions.
     authors:
         - Robbert Harms
         - Sanne Schoenmakers
@@ -32,22 +32,22 @@ questions:
             keywords: [alpha, beta]
             language: en
         lifecycle:
-            author:
+            author: John Doe
         classification:
             skill_level: Knowledge
             related_concepts: [Ybe]
             module: Science
             chapter: 1
             difficulty: 1
-    analytics:
-        - exam:
-            name: 2020_qz1
-            participants: 1
-            nmr_correct: 0
-        - exam:
-            name: 2020_qz1
-            participants: 200
-            nmr_correct: 25
+        analytics:
+            - exam:
+                name: 2020_qz1
+                participants: 1
+                nmr_correct: 0
+            - exam:
+                name: 2020_qz1
+                participants: 200
+                nmr_correct: 25
 
 - multiple_choice:
     id: 2013_q1
@@ -81,21 +81,21 @@ questions:
     meta_data:
         general:
             description: Some description for yourself
-            keywords: []
+            keywords: [Examples]
             language: en
         lifecycle:
-            author:
+            author: Jane Doe
         classification:
             skill_level: Comprehension
             related_concepts: [Physics, science]
             module: Science
             chapter: 2
             difficulty: 3
-    analytics:
-        - exam:
-            name: 2020_qz1
-            participants: 1
-            nmr_correct: 0
+        analytics:
+            - exam:
+                name: 2020_qz1
+                participants: 1
+                nmr_correct: 0
 
 - open:
     id: '#2003_1'
@@ -111,15 +111,37 @@ questions:
             keywords: [alpha, beta]
             language: en
         lifecycle:
-            author:
+            author: Some Author
         classification:
             skill_level: Analysis
             related_concepts: [Ybe, science]
             module: Science
             chapter: 3
             difficulty: 5
-    analytics:
-        - exam:
-            name: 2020_qz1
-            participants: 1
-            nmr_correct: 0
+        analytics:
+            - exam:
+                name: 2020_qz1
+                participants: 1
+                nmr_correct: 0
+
+- open:
+    id: '#2003_2'
+    text: This question does not have any meta data or options.
+
+- multiple_choice:
+    id: 2013_q2
+    text: This question also does not have any meta data.
+    answers:
+        - answer:
+            text: Isaac Newton
+            points: 0
+        - answer:
+            text: Niels Bohr
+            points: 0
+        - answer:
+            text: Richard Feynman
+            points: 0
+        - answer:
+            text: Albert Einstein
+            points: 1
+            correct: true

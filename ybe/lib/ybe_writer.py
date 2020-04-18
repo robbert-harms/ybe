@@ -13,11 +13,13 @@ from ybe.__version__ import __version__
 from ybe.lib.ybe_contents import OpenQuestion, MultipleChoice, Text, TextLatex
 
 
-def write_ybe_string(ybe_file):
+def write_ybe_string(ybe_file, minimal=False):
     """Dump the provided YbeFile as a .ybe formatted string.
 
     Args:
         ybe_file (ybe.lib.ybe_contents.YbeFile): the ybe file contents to dump
+        minimal (boolean): if set to True we only print the configured options.
+            By default this flag is False, meaning we print all the available options, if needed with null placeholders.
 
     Returns:
         str: an .ybe (Yaml) formatted string
@@ -116,8 +118,7 @@ def _convert_multiple_choice(node):
     data.update(_convert_text_from_node(node.text))
     data.update({
         'answers': _convert_multiple_choice_answers(node.answers),
-        'meta_data': _convert_meta_data(node.meta_data),
-        'analytics': _convert_analytics(node.analytics)})
+        'meta_data': _convert_meta_data(node.meta_data)})
     return data
 
 
@@ -134,8 +135,7 @@ def _convert_open_question(node):
     data.update(_convert_text_from_node(node.text))
     data.update({
         'options': node.options.__dict__,
-        'meta_data': _convert_meta_data(node.meta_data),
-        'analytics': _convert_analytics(node.analytics)})
+        'meta_data': _convert_meta_data(node.meta_data)})
     return data
 
 
@@ -197,19 +197,8 @@ def _convert_meta_data(node):
 
     return {'general': general,
             'lifecycle': node.lifecycle.__dict__,
-            'classification': classification}
-
-
-def _convert_analytics(node):
-    """Convert the analytics into a dictionary.
-
-    Args:
-        node (ybe.lib.ybe_contents.QuestionAnalytics): the analytics object to convert
-
-    Returns:
-        dict: the converted node
-    """
-    return node.analytics
+            'classification': classification,
+            'analytics': node.analytics.analytics}
 
 
 def _inline_list(l):

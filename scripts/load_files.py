@@ -29,5 +29,5 @@ ybe_file = load('../ybe/data/example_database.ybe')
 
 # print(ybe_file.get_warnings())  # todo
 
-print(dumps(ybe_file))
+print(dumps(ybe_file, minimal=True))
 dump(ybe_file, '/tmp/test.ybe')

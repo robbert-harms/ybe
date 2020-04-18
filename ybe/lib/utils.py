@@ -40,25 +40,29 @@ def loads(ybe_str):
     return load_ybe_string(ybe_str)
 
 
-def dumps(ybe_file):
+def dumps(ybe_file, minimal=False):
     """Dump the provided ybe file as a .ybe formatted string.
 
     Args:
         ybe_file (ybe.lib.ybe_file.YbeFile): the ybe file contents to dump
+        minimal (boolean): if set to True we only print the configured options.
+            By default this flag is False, meaning we print all the available options, if needed with null placeholders.
 
     Returns:
         str: an .ybe formatted string
     """
-    return write_ybe_string(ybe_file)
+    return write_ybe_string(ybe_file, minimal=minimal)
 
 
-def dump(ybe_file, fname):
+def dump(ybe_file, fname, minimal=False):
     """Dump the provided Ybe file to the indicated file.
 
     Args:
         ybe_file (ybe.lib.ybe_file.YbeFile): the ybe file contents to dump
         fname (str): the filename to dump to
+        minimal (boolean): if set to True we only print the configured options.
+            By default this flag is False, meaning we print all the available options, if needed with null placeholders.
     """
     with open(fname, 'w') as f:
-        f.write(dumps(ybe_file))
+        f.write(dumps(ybe_file, minimal=minimal))
 
