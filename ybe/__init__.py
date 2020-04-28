@@ -14,4 +14,5 @@ except ValueError as e:
     print('Logging disabled, error message: {}'.format(e))
 
 from ybe.__version__ import VERSION, VERSION_STATUS, __version__
-from ybe.lib.utils import load, loads, dump, dumps
+from ybe.lib.ybe_writer import write_ybe_string, write_ybe_file
+from ybe.lib.ybe_reader import read_ybe_string, read_ybe_file

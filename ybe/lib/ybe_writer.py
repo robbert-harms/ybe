@@ -14,6 +14,19 @@ from ybe.lib.errors import YbeVisitingError
 from ybe.lib.ybe_contents import YbeNodeVisitor
 
 
+def write_ybe_file(ybe_file, fname, minimal=False):
+    """Dump the provided Ybe file object to the indicated file.
+
+    Args:
+        ybe_file (ybe.lib.ybe_file.YbeFile): the ybe file object to dump
+        fname (str): the filename to dump to
+        minimal (boolean): if set to True we only print the configured options.
+            By default this flag is False, meaning we print all the available options, if needed with null placeholders.
+    """
+    with open(fname, 'w') as f:
+        f.write(write_ybe_string(ybe_file, minimal=minimal))
+
+
 def write_ybe_string(ybe_file, minimal=False):
     """Dump the provided YbeFile as a .ybe formatted string.
 
@@ -51,7 +64,8 @@ def write_ybe_string(ybe_file, minimal=False):
                 if line.startswith('questions:'):
                     in_questions_block = True
 
-            if any(new_line.startswith(el) for el in ['info', 'questions:', '- multiple_choice:', '- open:'])\
+            if any(new_line.startswith(el) for el in ['info', 'questions:', '- multiple_choice:', '- open:',
+                                                      '- multiple_response:'])\
                     and not previous_new_line.startswith('\nquestions:'):
                 new_line = '\n' + new_line
 
@@ -119,6 +133,24 @@ class YbeConversionVisitor(YbeNodeVisitor):
 
         return {'multiple_choice': data}
 
+    def _visit_MultipleResponse(self, node):
+        """Convert the given :class:`ybe.lib.ybe_contents.MultipleResponse` into a dictionary.
+
+        Args:
+            node (ybe.lib.ybe_contents.MultipleResponse): the question to convert
+
+        Returns:
+            dict: the question as a dictionary
+        """
+        data = {'id': node.id}
+        data.update(self.visit(node.text))
+        data['answers'] = [{'answer': self.visit(el)} for el in node.answers]
+
+        if len(meta_data := self.visit(node.meta_data)) or not self.minimal:
+            data['meta_data'] = meta_data
+
+        return {'multiple_response': data}
+
     def _visit_OpenQuestion(self, node):
         """Convert the given :class:`ybe.lib.ybe_contents.OpenQuestion` into a dictionary.
 
@@ -129,6 +161,10 @@ class YbeConversionVisitor(YbeNodeVisitor):
             dict: the question as a dictionary
         """
         data = {'id': node.id}
+
+        if node.points is not None or not self.minimal:
+            data['points'] = node.points
+
         data.update(self.visit(node.text))
 
         if len(options := self.visit(node.options)) or not self.minimal:
@@ -140,10 +176,16 @@ class YbeConversionVisitor(YbeNodeVisitor):
         return {'open': data}
 
     def _visit_Text(self, node):
-        return {'text': self._yaml_format_text(node.text)}
+        return {'text': self._yaml_text_block(node.text)}
 
     def _visit_TextLatex(self, node):
-        return {'text_latex': self._yaml_format_text(node.text)}
+        return {'text_latex': self._yaml_text_block(node.text)}
+
+    def _visit_TextHTML(self, node):
+        return {'text_html': self._yaml_text_block(node.text)}
+
+    def _visit_TextMarkdown(self, node):
+        return {'text_markdown': self._yaml_text_block(node.text)}
 
     def _visit_MultipleChoiceAnswer(self, node):
         """Convert a single multiple choice answer
@@ -157,13 +199,26 @@ class YbeConversionVisitor(YbeNodeVisitor):
         data = {}
         data.update(self.visit(node.text))
         data['points'] = node.points
-        if node.correct:
-            data['correct'] = node.correct
+        return data
+
+    def _visit_MultipleResponseAnswer(self, node):
+        """Convert a single multiple response answer
+
+        Args:
+            node (ybe.lib.ybe_contents.MultipleResponseAnswer): the multiple response answers to convert to text.
+
+        Returns:
+            dict: the converted answer
+        """
+        data = {}
+        data.update(self.visit(node.text))
+        data['points'] = node.points
         return data
 
     def _visit_OpenQuestionOptions(self, node):
+        data = node.__dict__
         if self.minimal:
-            return {k: v for k, v in node.__dict__.items() if v is not None}
+            return {k: v for k, v in data.items() if v != node.get_default_value(k)}
         return node.__dict__
 
     def _visit_QuestionMetaData(self, node):
@@ -175,33 +230,17 @@ class YbeConversionVisitor(YbeNodeVisitor):
         Returns:
             dict: the converted node
         """
-        result = {}
-
-        if len(general := self.visit(node.general)) or not self.minimal:
-            result['general'] = general
-
-        if len(lifecycle := self.visit(node.lifecycle)) or not self.minimal:
-            result['lifecycle'] = lifecycle
-
-        if len(classification := self.visit(node.classification)) or not self.minimal:
-            result['classification'] = classification
-
-        if len(analytics := self.visit(node.analytics)) or not self.minimal:
-            result['analytics'] = analytics
-
-        return result
+        data = node.__dict__
+        if self.minimal:
+            return {k: self.visit(v) for k, v in data.items() if v != node.get_default_value(k)}
+        return {k: self.visit(v) for k, v in node.__dict__.items()}
 
     def _visit_GeneralQuestionMetaData(self, node):
         data = node.__dict__
         data['keywords'] = self._yaml_inline_list(data['keywords'])
 
         if self.minimal:
-            minimal_data = {k: v for k, v in data.items() if v is not None}
-
-            if not len(data['keywords']):
-                del minimal_data['keywords']
-            return minimal_data
-
+            return {k: v for k, v in data.items() if v != node.get_default_value(k)}
         return data
 
     def _visit_AnalyticsQuestionMetaData(self, node):
@@ -212,22 +251,17 @@ class YbeConversionVisitor(YbeNodeVisitor):
         data['related_concepts'] = self._yaml_inline_list(data['related_concepts'])
 
         if self.minimal:
-            minimal_data = {k: v for k, v in data.items() if v is not None}
-
-            if not len(data['related_concepts']):
-                del minimal_data['related_concepts']
-            return minimal_data
-
+            return {k: v for k, v in data.items() if v != node.get_default_value(k)}
         return data
 
     def _visit_LifecycleQuestionMetaData(self, node):
         data = node.__dict__
         if self.minimal:
-            return {k: v for k, v in data.items() if v is not None}
+            return {k: v for k, v in data.items() if v != node.get_default_value(k)}
         return node.__dict__
 
     @staticmethod
-    def _yaml_format_text(text):
+    def _yaml_text_block(text):
         if '\n' in text:
             return scalarstring.PreservedScalarString(text)
         return text

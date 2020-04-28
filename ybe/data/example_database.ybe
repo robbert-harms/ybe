@@ -12,6 +12,7 @@ info:
 questions:
 - open:
     id: '#2003_2'
+    points: 3.14
     text: This open question does not have any meta data or options.
 
 - multiple_choice:
@@ -19,18 +20,60 @@ questions:
     text: This question also does not have any meta data.
     answers:
         - answer:
-            text: Isaac Newton
+            text: First answer
             points: 0
         - answer:
-            text: Niels Bohr
+            text: Second answer
             points: 0
         - answer:
-            text: Richard Feynman
+            text: Third answer
             points: 0
         - answer:
-            text: Albert Einstein
+            text: Fourth answer
             points: 1
-            correct: true
+
+- multiple_response:
+    id: 2015_q1
+    text: A multiple choice question allowing multiple answers
+    answers:
+        - answer:
+            text: First answer
+            points: -1
+        - answer:
+            text: Second answer
+            points: -1
+        - answer:
+            text: Third answer
+            points: 1
+        - answer:
+            text: Fourth answer
+            points: 1
+
+- open:
+    id: '#2003_1'
+    text: This is another template for an open question.
+    options:
+        max_words: 1000
+        min_words: 100
+        expected_lines: 7
+    meta_data:
+        general:
+            description: Some description for yourself
+            keywords: [alpha, beta]
+            language: en
+        lifecycle:
+            author: Some Author
+        classification:
+            skill_level: Analysis
+            related_concepts: [Ybe, science]
+            module: Science
+            chapter: 3
+            difficulty: 5
+        analytics:
+            - exam:
+                name: 2020_qz1
+                participants: 1
+                nmr_correct: 0
 
 - multiple_choice:
     id: <some_random_string>
@@ -47,7 +90,6 @@ questions:
         - answer:
             text: '1 variant: with or without the "|" operator'
             points: 1
-            correct: true
     meta_data:
         general:
             description: Some description for yourself
@@ -99,7 +141,6 @@ questions:
         - answer:
             text: Albert Einstein
             points: 1
-            correct: true
     meta_data:
         general:
             description: Some description for yourself
@@ -113,33 +154,6 @@ questions:
             module: Science
             chapter: 2
             difficulty: 3
-        analytics:
-            - exam:
-                name: 2020_qz1
-                participants: 1
-                nmr_correct: 0
-
-- open:
-    id: '#2003_1'
-    text: This is the template for an open question.
-    options:
-        max_words: 1000
-        min_words: 100
-        expected_words: 500
-        expected_lines: 7
-    meta_data:
-        general:
-            description: Some description for yourself
-            keywords: [alpha, beta]
-            language: en
-        lifecycle:
-            author: Some Author
-        classification:
-            skill_level: Analysis
-            related_concepts: [Ybe, science]
-            module: Science
-            chapter: 3
-            difficulty: 5
         analytics:
             - exam:
                 name: 2020_qz1

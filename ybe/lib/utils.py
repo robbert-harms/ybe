@@ -4,65 +4,23 @@ __maintainer__ = 'Robbert Harms'
 __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
-
-from ybe.lib.ybe_parser import load_ybe_string
-from ybe.lib.ybe_writer import write_ybe_string
+from dataclasses import MISSING
 
 
-def load(fname):
-    """Load the data from the provided .ybe file and return an :class:`ybe.lib.ybe_contents.YbeFile` object.
+def get_default_value(field):
+    """Resolve the default value of a dataclass field.
+
+    This first looks if ``default`` is defined, next it tries to call the function ``default_factory``, else it
+    returns None.
 
     Args:
-        fname (str): the filename of the .ybe file to load
+        field (dataclass.field): one field of a class with @dataclass decorator
 
     Returns:
-        ybe.lib.ybe_contents.YbeFile: the contents of the .ybe file.
-
-    Raises:
-        ybe.lib.errors.YbeLoadingError: if the file could not be loaded due to syntax errors
+        Any: the default field object.
     """
-    with open(fname, "r") as f:
-        return loads(f.read())
-
-
-def loads(ybe_str):
-    """Load the data from the provided Ybe formatted string and return an :class:`ybe.lib.ybe_contents.YbeFile` object.
-
-    Args:
-        ybe_str (str): an .ybe formatted string to load
-
-    Returns:
-        ybe.lib.ybe_contents.YbeFile: the contents of the .ybe file.
-
-    Raises:
-        ybe.lib.errors.YbeLoadingError: if the file could not be loaded due to syntax errors
-    """
-    return load_ybe_string(ybe_str)
-
-
-def dumps(ybe_file, minimal=False):
-    """Dump the provided ybe file as a .ybe formatted string.
-
-    Args:
-        ybe_file (ybe.lib.ybe_file.YbeFile): the ybe file contents to dump
-        minimal (boolean): if set to True we only print the configured options.
-            By default this flag is False, meaning we print all the available options, if needed with null placeholders.
-
-    Returns:
-        str: an .ybe formatted string
-    """
-    return write_ybe_string(ybe_file, minimal=minimal)
-
-
-def dump(ybe_file, fname, minimal=False):
-    """Dump the provided Ybe file to the indicated file.
-
-    Args:
-        ybe_file (ybe.lib.ybe_file.YbeFile): the ybe file contents to dump
-        fname (str): the filename to dump to
-        minimal (boolean): if set to True we only print the configured options.
-            By default this flag is False, meaning we print all the available options, if needed with null placeholders.
-    """
-    with open(fname, 'w') as f:
-        f.write(dumps(ybe_file, minimal=minimal))
-
+    if hasattr(field, 'default') and field.default is not MISSING:
+        return field.default
+    elif hasattr(field, 'default_factory') and field.default_factory is not MISSING:
+        return field.default_factory()
+    return None

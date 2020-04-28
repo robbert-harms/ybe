@@ -8,6 +8,9 @@
     - points for correct answer
 - implement warnings system
 
+
+- to discuss: ``points`` also for open question? general field?
+
 '''
 #todo
 - raise exception when a multiple choice question does not have an answer marked as 'correct'
@@ -48,3 +51,6 @@ def tex_escape(text):
     }
     regex = re.compile('|'.join(re.escape(str(key)) for key in sorted(conv.keys(), key = lambda item: - len(item))))
     return regex.sub(lambda match: conv[match.group()], text)
+
+
+notes: $IMS-CC-FILEBASE$ for the path to an image.

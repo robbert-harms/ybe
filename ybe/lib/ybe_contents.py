@@ -6,10 +6,13 @@ __maintainer__ = 'Robbert Harms'
 __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field, fields
+from typing import List, Union
+
+from ybe.lib.utils import get_default_value
 
 
+@dataclass
 class YbeNode:
     """Basic inheritance class for all Ybe related content nodes."""
 
@@ -20,6 +23,39 @@ class YbeNode:
             visitor (YbeNodeVisitor): the visitor we will give a callback.
         """
         visitor.visit(self)
+
+    def get_default_value(self, attribute_name):
+        """Get the default value for an attribute of this node.
+
+        Args:
+            attribute_name (str): the name of the attribute for which we want the default value
+
+        Returns:
+            Any: the default value
+        """
+        raise NotImplementedError()
+
+
+class SimpleYbeNode(YbeNode):
+    """Simple implementation of the required methods of an YbeNode."""
+
+    def get_default_value(self, attribute_name):
+        """By default, resolve the default value using the dataclass fields."""
+        if attribute_name not in self.__dict__:
+            raise AttributeError('Attribute not found in class.')
+
+        for field in fields(self):
+            if field.name == attribute_name:
+                return get_default_value(field)
+
+        raise AttributeError('No default value found for class.')
+
+    def __post_init__(self):
+        """By default, initialize the fields using the :func:`get_default_value` using the dataclass fields."""
+        for field in fields(self):
+            value = getattr(self, field.name)
+            if value is None:
+                setattr(self, field.name, get_default_value(field))
 
 
 class YbeNodeVisitor:
@@ -35,116 +71,87 @@ class YbeNodeVisitor:
 
 
 @dataclass
-class YbeFile(YbeNode):
+class YbeFile(SimpleYbeNode):
     """Representation of an Ybe file.
 
     An Ybe file basically consists of a header followed of a number of questions.
     """
-    file_info: YbeFileInfo = None
-    questions: List[Question] = None
-
-    def __post_init__(self):
-        self.file_info = self.file_info or YbeFileInfo()
-        self.questions = self.questions or []
+    file_info: YbeFileInfo = field(default_factory=lambda: YbeFileInfo())
+    questions: List[Question] = field(default_factory=list)
 
     def __str__(self):
         """Prints itself in Ybe Yaml format."""
-        from ybe.lib.utils import dumps
-        return dumps(self)
+        from ybe.lib.ybe_writer import write_ybe_string
+        return write_ybe_string(self, minimal=True)
 
 
 @dataclass
-class YbeFileInfo(YbeNode):
+class YbeFileInfo(SimpleYbeNode):
     """The header information in a Ybe file."""
     title: str = None
     description: str = None
     document_version: str = None
-    authors: List[str] = None
+    authors: List[str] = field(default_factory=list)
     creation_date: str = None
-
-    def __post_init__(self):
-        self.authors = self.authors or []
 
 
 @dataclass
-class Question(YbeNode):
+class Question(SimpleYbeNode):
     id: str = ''
-    text: TextBlock = None
-    meta_data: QuestionMetaData = None
-
-    def __post_init__(self):
-        self.id = self.id or ''
-        self.text = self.text or Text()
-        self.meta_data = self.meta_data or QuestionMetaData()
+    text: TextBlock = field(default_factory=lambda: Text())
+    meta_data: QuestionMetaData = field(default_factory=lambda: QuestionMetaData())
 
 
 @dataclass
 class MultipleChoice(Question):
-    answers: List[MultipleChoiceAnswer] = None
+    answers: List[MultipleChoiceAnswer] = field(default_factory=list)
 
-    def __post_init__(self):
-        self.answers = self.answers or []
 
-    def nmr_correct_answers(self):
-        """Get the number of answers marked as ``correct.``.
-
-        Returns:
-            int: the number of correct answers in this question
-        """
-        return sum(answer.correct for answer in self.answers)
+@dataclass
+class MultipleResponse(Question):
+    answers: List[MultipleResponseAnswer] = field(default_factory=list)
 
 
 @dataclass
 class OpenQuestion(Question):
-    options: OpenQuestionOptions = None
-
-    def __post_init__(self):
-        self.options = self.options or OpenQuestionOptions()
+    points: Union[float, int] = None
+    options: OpenQuestionOptions = field(default_factory=lambda: OpenQuestionOptions())
 
 
 @dataclass
-class MultipleChoiceAnswer(YbeNode):
-    text: TextBlock = None
-    points: float = None
-    correct: bool = None
-
-    def __post_init__(self):
-        self.text = self.text or Text()
-        self.points = self.points or 0
-        self.correct = self.correct or False
+class MultipleChoiceAnswer(SimpleYbeNode):
+    text: TextBlock = field(default_factory=lambda: Text())
+    points: float = 0
 
 
 @dataclass
-class QuestionMetaData(YbeNode):
-    general: GeneralQuestionMetaData = None
-    lifecycle: LifecycleQuestionMetaData = None
-    classification: ClassificationQuestionMetaData = None
-    analytics: AnalyticsQuestionMetaData = None
-
-    def __post_init__(self):
-        self.general = self.general or GeneralQuestionMetaData()
-        self.lifecycle = self.lifecycle or LifecycleQuestionMetaData()
-        self.classification = self.classification or ClassificationQuestionMetaData()
-        self.analytics = self.analytics or AnalyticsQuestionMetaData()
+class MultipleResponseAnswer(SimpleYbeNode):
+    text: TextBlock = field(default_factory=lambda: Text())
+    points: float = 0
 
 
 @dataclass
-class GeneralQuestionMetaData(YbeNode):
+class QuestionMetaData(SimpleYbeNode):
+    general: GeneralQuestionMetaData = field(default_factory=lambda: GeneralQuestionMetaData())
+    lifecycle: LifecycleQuestionMetaData = field(default_factory=lambda: LifecycleQuestionMetaData())
+    classification: ClassificationQuestionMetaData = field(default_factory=lambda: ClassificationQuestionMetaData())
+    analytics: AnalyticsQuestionMetaData = field(default_factory=lambda: AnalyticsQuestionMetaData())
+
+
+@dataclass
+class GeneralQuestionMetaData(SimpleYbeNode):
     description: str = None
-    keywords: List[str] = None
+    keywords: List[str] = field(default_factory=list)
     language: str = None
 
-    def __post_init__(self):
-        self.keywords = self.keywords or []
-
 
 @dataclass
-class LifecycleQuestionMetaData(YbeNode):
+class LifecycleQuestionMetaData(SimpleYbeNode):
     author: str = None
 
 
 @dataclass
-class ClassificationQuestionMetaData(YbeNode):
+class ClassificationQuestionMetaData(SimpleYbeNode):
     """The skill level and difficulty of the question.
 
     Args:
@@ -155,54 +162,54 @@ class ClassificationQuestionMetaData(YbeNode):
         difficulty (int): the difficulty level from 1 to 10, with 10 being the hardest
     """
     skill_level: str = None
-    related_concepts: List[str] = None
+    related_concepts: List[str] = field(default_factory=list)
     module: str = None
     chapter: int = None
     difficulty: int = None
 
     available_skill_levels = ['Knowledge', 'Comprehension', 'Application', 'Analysis', 'Synthesis', 'Evaluation']
 
-    def __post_init__(self):
-        self.related_concepts = self.related_concepts or []
-
 
 @dataclass
-class AnalyticsQuestionMetaData(YbeNode):
+class AnalyticsQuestionMetaData(SimpleYbeNode):
     """Analytics about this question, e.g. usage statistics."""
-    analytics: List[dict] = None
-
-    def __post_init__(self):
-        self.analytics = self.analytics or []
+    analytics: List[dict] = field(default_factory=list)
 
 
 @dataclass
-class TextBlock(YbeNode):
+class TextBlock(SimpleYbeNode):
     text: str = ''
 
 
 @dataclass
 class Text(TextBlock):
     """Text without any formatting."""
-    pass
 
 
 @dataclass
 class TextLatex(TextBlock):
     """Text in Latex format."""
-    pass
 
 
 @dataclass
-class OpenQuestionOptions(YbeNode):
+class TextMarkdown(TextBlock):
+    """Text in Markdown format."""
+
+
+@dataclass
+class TextHTML(TextBlock):
+    """Text in HTML format."""
+
+
+@dataclass
+class OpenQuestionOptions(SimpleYbeNode):
     """Options concerning an open question.
 
     Args:
         max_words (int): the maximum number of allowed words
         min_words (int): the minimum number of allowed words
-        expected_words (int): the expected number of words (size hint)
         expected_lines (int): the number of lines expected to be typed (size hint)
     """
     max_words: int = None
     min_words: int = None
-    expected_words: int = None
     expected_lines: int = None

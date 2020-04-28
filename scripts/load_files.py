@@ -8,27 +8,21 @@ import sys
 from pprint import pprint
 import ybe
 import yaml
-from ybe.lib.utils import load, dumps, dump
-# import text2qti
+import text2qti
 from ruamel.yaml import YAML
+from ybe import read_ybe_file, write_ybe_string, write_ybe_file
+from ybe.lib.qti_reader import read_qti_zip, read_qti_dir
 
 
-# with open('../ybe/data/example_database.ybe', 'r') as f:
-#     yaml = YAML(typ='rt')
-#     a = yaml.load(f)
+ybe_file = read_ybe_file('../ybe/data/example_database.ybe')
+print(ybe_file)
+# # # # print(ybe_file.get_warnings())  # todo
+# # print(write_ybe_string(ybe_file, minimal=True))
+write_ybe_file(ybe_file, '/tmp/test.ybe', minimal=True)
 #
-#     yaml2 = YAML()
-# #     yaml2.dump(a, sys.stdout)
-# #
-# #
-# #     print()
-# # exit()
 
-ybe_file = load('../ybe/data/example_database.ybe')
+# ybe_file = read_qti_zip('../ybe/data/qti_examples/canvas_export.zip')
 # print(ybe_file)
-
-# print(ybe_file.get_warnings())  # todo
-
-print(dumps(ybe_file, minimal=True))
-# print(dumps(ybe_file, minimal=False))
-dump(ybe_file, '/tmp/test.ybe', minimal=True)
+#
+# ybe_file = read_qti_dir('../ybe/data/qti_examples/canvas_export_6')
+# print(ybe_file)
