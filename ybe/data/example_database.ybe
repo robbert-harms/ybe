@@ -17,66 +17,39 @@ questions:
 
 - multiple_choice:
     id: 2013_q2
-    text: This question also does not have any meta data.
+    points: 1
+    text: This question also does not have any meta data, but does have an image!
+        Although it continues on the next line, newline breaks are not kept intact, for that, use the |- modifier.
     answers:
         - answer:
             text: First answer
-            points: 0
         - answer:
             text: Second answer
-            points: 0
         - answer:
             text: Third answer
-            points: 0
         - answer:
             text: Fourth answer
-            points: 1
+            correct: true
 
 - multiple_response:
     id: 2015_q1
+    points: 1
     text: A multiple choice question allowing multiple answers
     answers:
         - answer:
             text: First answer
-            points: -1
+            correct: true
         - answer:
             text: Second answer
-            points: -1
         - answer:
             text: Third answer
-            points: 1
+            correct: true
         - answer:
             text: Fourth answer
-            points: 1
-
-- open:
-    id: '#2003_1'
-    text: This is another template for an open question.
-    options:
-        max_words: 1000
-        min_words: 100
-        expected_lines: 7
-    meta_data:
-        general:
-            description: Some description for yourself
-            keywords: [alpha, beta]
-            language: en
-        lifecycle:
-            author: Some Author
-        classification:
-            skill_level: Analysis
-            related_concepts: [Ybe, science]
-            module: Science
-            chapter: 3
-            difficulty: 5
-        analytics:
-            - exam:
-                name: 2020_qz1
-                participants: 1
-                nmr_correct: 0
 
 - multiple_choice:
     id: <some_random_string>
+    points: 1
     text: |-
         Due to the "|" operator, all newlines in this text will be kept intact.
         That is, this line will appear on a new line in the example file.
@@ -86,10 +59,9 @@ questions:
     answers:
         - answer:
             text: 0 variants
-            points: 0
         - answer:
             text: '1 variant: with or without the "|" operator'
-            points: 1
+            correct: true
     meta_data:
         general:
             description: Some description for yourself
@@ -113,47 +85,46 @@ questions:
                 participants: 200
                 nmr_correct: 25
 
-- multiple_choice:
-    id: 2013_q1
-    text_latex: |-
-        This text uses Latex to format the text. As such, you can use Latex math operators, such as:
+- open:
+    id: '#2003_1'
+    points: 3
+    text: |-
+        Since "text" is short for "text_markdown", you can use Markdown syntax to markup your document.
 
-        \[E=mc^2\]
+        For example:
 
-        which is a formula discovered in 1905.
-        Or, in natural units ($c$ = 1), this formula can be written as:
+        1. this is a list
+        2. *with this in italics*
+        3. **and in bold**
 
-        \begin{equation}
-        E=m
-        \end{equation}
+        This is a famous formula inline: $E=mc^2$ and this is a basic displayed formulae:
 
-        Question: Who discovered this formula first?
-    answers:
-        - answer:
-            text: Isaac Newton
-            points: 0
-        - answer:
-            text: Niels Bohr
-            points: 0
-        - answer:
-            text: Richard Feynman
-            points: 0
-        - answer:
-            text: Albert Einstein
-            points: 1
+        $$ a^2 = b^2 + c^2$$
+
+        And it all costs $0.0!
+
+        Next to that, here is an image from Escher:
+        ![](escher.jpg)
+
+        And an inline hello world image:
+        ![Hello World](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAAAUCAAAAAAVAxSkAAABrUlEQVQ4y+3TPUvDQBgH8OdDOGa+oUMgk2MpdHIIgpSUiqC0OKirgxYX8QVFRQRpBRF8KShqLbgIYkUEteCgFVuqUEVxEIkvJFhae3m8S2KbSkcFBw9yHP88+eXucgH8kQZ/jSm4VDaIy9RKCpKac9NKgU4uEJNwhHhK3qvPBVO8rxRWmFXPF+NSM1KVMbwriAMwhDgVcrxeMZm85GR0PhvGJAAmyozJsbsxgNEir4iEjIK0SYqGd8sOR3rJAGN2BCEkOxhxMhpd8Mk0CXtZacxi1hr20mI/rzgnxayoidevcGuHXTC/q6QuYSMt1jC+gBIiMg12v2vb5NlklChiWnhmFZpwvxDGzuUzV8kOg+N8UUvNBp64vy9q3UN7gDXhwWLY2nMC3zRDibfsY7wjEkY79CdMZhrxSqqzxf4ZRPXwzWJirMicDa5KwiPeARygHXKNMQHEy3rMopDR20XNZGbJzUtrwDC/KshlLDWyqdmhxZzCsdYmf2fWZPoxCEDyfIvdtNQH0PRkH6Q51g8rFO3Qzxh2LbItcDCOpmuOsV7ntNaERe3v/lP/zO8yn4N+yNPrekmPAAAAAElFTkSuQmCC)
+    options:
+        max_words: 1000
+        min_words: 100
+        expected_lines: 7
     meta_data:
         general:
             description: Some description for yourself
-            keywords: [Examples]
+            keywords: [alpha, beta]
             language: en
         lifecycle:
-            author: Jane Doe
+            author: Some Author
         classification:
-            skill_level: Comprehension
-            related_concepts: [Physics, science]
+            skill_level: Analysis
+            related_concepts: [Ybe, science]
             module: Science
-            chapter: 2
-            difficulty: 3
+            chapter: 3
+            difficulty: 5
         analytics:
             - exam:
                 name: 2020_qz1

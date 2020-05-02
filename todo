@@ -1,33 +1,23 @@
-- add test
-    - load and write the example yaml file and see if files are the same
+Important:
+    - define and load images
 
-- scoring form
-- export to latex (add option to print question ID or not)
-- warning if multiple choice question has no:
-    - correct answer
-    - points for correct answer
-- implement warnings system
-
-
-- to discuss: ``points`` also for open question? general field?
-
-'''
-#todo
-- raise exception when a multiple choice question does not have an answer marked as 'correct'
-- gui?
-- query functions
-- yaml reader and writer
-- write down format descriptions
-    - i.e. which kind of values are allows and which are not
-- integrate yamllint as tester
-'''
-
-Suggestion from Sanne:
-    - every MC question **must have** points
+Wish list:
+    - add test
+        - load and write the example yaml file and see if files are the same
+    - scoring form
+    - export to latex (add option to print question ID or not)
+    - warning if multiple choice question has no:
+        - correct answer
+    - implement warnings system
+    - gui?
+    - write down format descriptions
+        - i.e. which kind of values are allows and which are not
+    - query functions
     - documentation
+    - finalize import from QTI:
+        load images: $IMS-CC-FILEBASE$ for the path to an image.
 
 
-- look at text2qti for how to write the QTI files
 
 
 def tex_escape(text):
@@ -53,4 +43,4 @@ def tex_escape(text):
     return regex.sub(lambda match: conv[match.group()], text)
 
 
-notes: $IMS-CC-FILEBASE$ for the path to an image.
+

@@ -6,6 +6,12 @@ __maintainer__ = 'Robbert Harms'
 __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
+import os
+import shutil
+import zipfile
+
+import pypandoc
+from bs4 import BeautifulSoup
 from dataclasses import dataclass, field, fields
 from typing import List, Union
 
@@ -35,6 +41,28 @@ class YbeNode:
         """
         raise NotImplementedError()
 
+    def get_resources(self):
+        """Get a list of :class:`YbeResources` in this node or sub-tree.
+
+        This will need to do a recursive lookup to find all the resources.
+
+        Returns:
+            List[YbeResource]: list of resources nodes.
+        """
+        raise NotImplementedError()
+
+
+class YbeNodeVisitor:
+    """Interface class for a node visitor, part of the ``visitor`` design pattern."""
+
+    def visit(self, node):
+        """Visit method, called by the node which accepted this visitor.
+
+        Args:
+            node (YbeNode): the node being visited.
+        """
+        raise NotImplementedError()
+
 
 class SimpleYbeNode(YbeNode):
     """Simple implementation of the required methods of an YbeNode."""
@@ -57,17 +85,95 @@ class SimpleYbeNode(YbeNode):
             if value is None:
                 setattr(self, field.name, get_default_value(field))
 
+    def get_resources(self):
+        def get_resources_of_value(value):
+            resources = []
+            if isinstance(value, YbeNode):
+                resources.extend(value.get_resources())
+            elif isinstance(value, (list, tuple)):
+                for el in value:
+                    resources.extend(get_resources_of_value(el))
+            return resources
 
-class YbeNodeVisitor:
-    """Interface class for a node visitor, part of the ``visitor`` design pattern."""
+        resources = []
+        for key, value in self.__dict__.items():
+            resources.extend(get_resources_of_value(value))
 
-    def visit(self, node):
-        """Visit method, called by the node which accepted this visitor.
+        return resources
+
+
+@dataclass
+class YbeExamElement(SimpleYbeNode):
+    """Base class for questions and other nodes appearing in an exam / questionnaire."""
+
+
+@dataclass
+class YbeResource(SimpleYbeNode):
+    """Reference to another file for included content."""
+    path: str = None
+
+
+@dataclass
+class ImageResource(YbeResource):
+    """Path and meta data of an image which need to be included as a resource."""
+    alt: str = None
+
+
+@dataclass
+class YbeResourceContext:
+    """The context used to load Ybe resource."""
+
+    def copy_resource(self, resource, dirname):
+        """Copy the indicated resource to the indicated directory.
 
         Args:
-            node (YbeNode): the node being visited.
+            resource (YbeResource): the resource to copy
+            dirname (str): the directory to copy to
         """
         raise NotImplementedError()
+
+
+@dataclass
+class ZipArchiveContext(YbeResourceContext):
+    """Loading resources from a zipped archive."""
+    path: str
+
+    def copy_resource(self, resource, dirname):
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
+        if os.path.isabs(resource.path):
+            shutil.copy(resource.path, dirname)
+        else:
+            if subdir := os.path.dirname(resource.path):
+                dirname = os.path.join(dirname, subdir) + '/'
+
+                if not os.path.exists(dirname):
+                    os.makedirs(dirname)
+
+            archive = zipfile.ZipFile(self.path, 'r')
+            archive.extract(resource.path, dirname)
+
+
+@dataclass
+class DirectoryContext(YbeResourceContext):
+    """Loading resources from a directory"""
+    path: str
+
+    def copy_resource(self, resource, dirname):
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
+        if os.path.isabs(resource.path):
+            shutil.copy(resource.path, dirname)
+        else:
+            if subdir := os.path.dirname(resource.path):
+                dirname = os.path.join(dirname, subdir) + '/'
+
+                if not os.path.exists(dirname):
+                    os.makedirs(dirname)
+
+            shutil.copy(os.path.join(self.path, resource.path), dirname)
 
 
 @dataclass
@@ -76,8 +182,9 @@ class YbeFile(SimpleYbeNode):
 
     An Ybe file basically consists of a header followed of a number of questions.
     """
-    file_info: YbeFileInfo = field(default_factory=lambda: YbeFileInfo())
+    info: YbeInfo = field(default_factory=lambda: YbeInfo())
     questions: List[Question] = field(default_factory=list)
+    resource_context: YbeResourceContext = None
 
     def __str__(self):
         """Prints itself in Ybe Yaml format."""
@@ -86,7 +193,7 @@ class YbeFile(SimpleYbeNode):
 
 
 @dataclass
-class YbeFileInfo(SimpleYbeNode):
+class YbeInfo(SimpleYbeNode):
     """The header information in a Ybe file."""
     title: str = None
     description: str = None
@@ -96,9 +203,10 @@ class YbeFileInfo(SimpleYbeNode):
 
 
 @dataclass
-class Question(SimpleYbeNode):
+class Question(YbeExamElement):
     id: str = ''
-    text: TextBlock = field(default_factory=lambda: Text())
+    points: Union[float, int] = None
+    text: TextNode = field(default_factory=lambda: Text())
     meta_data: QuestionMetaData = field(default_factory=lambda: QuestionMetaData())
 
 
@@ -114,20 +222,19 @@ class MultipleResponse(Question):
 
 @dataclass
 class OpenQuestion(Question):
-    points: Union[float, int] = None
     options: OpenQuestionOptions = field(default_factory=lambda: OpenQuestionOptions())
 
 
 @dataclass
 class MultipleChoiceAnswer(SimpleYbeNode):
-    text: TextBlock = field(default_factory=lambda: Text())
-    points: float = 0
+    text: TextNode = field(default_factory=lambda: Text())
+    correct: bool = False
 
 
 @dataclass
 class MultipleResponseAnswer(SimpleYbeNode):
-    text: TextBlock = field(default_factory=lambda: Text())
-    points: float = 0
+    text: TextNode = field(default_factory=lambda: Text())
+    correct: bool = False
 
 
 @dataclass
@@ -177,28 +284,51 @@ class AnalyticsQuestionMetaData(SimpleYbeNode):
 
 
 @dataclass
-class TextBlock(SimpleYbeNode):
+class TextNode(SimpleYbeNode):
     text: str = ''
 
+    def to_html(self):
+        """Return a copy of this textblock in HTML format.
 
-@dataclass
-class Text(TextBlock):
-    """Text without any formatting."""
-
-
-@dataclass
-class TextLatex(TextBlock):
-    """Text in Latex format."""
+        Returns:
+            TextHTML: a HTML conversion of this text block node
+        """
+        raise NotImplementedError()
 
 
 @dataclass
-class TextMarkdown(TextBlock):
-    """Text in Markdown format."""
+class TextMarkdown(TextNode):
+    """Text in Markdown format, use as ``text_markdown``."""
+
+    def get_resources(self):
+        return self.to_html().get_resources()
+
+    def to_html(self):
+        return TextHTML(pypandoc.convert_text(self.text, 'html', 'md', extra_args=['--mathjax']))
 
 
 @dataclass
-class TextHTML(TextBlock):
-    """Text in HTML format."""
+class TextHTML(TextNode):
+    """Text in HTML format, use as ``text_html``."""
+
+    def get_resources(self):
+        parsed = BeautifulSoup(self.text, 'lxml')
+
+        def only_files(src):
+            return not any(src.startswith(el) for el in ['http://', 'https://', 'data:'])
+
+        resources = []
+        for img in parsed.find_all('img', src=only_files):
+            resources.append(ImageResource(path=img.get('src'), alt=img.get('alt')))
+        return resources
+
+    def to_html(self):
+        return self
+
+
+@dataclass
+class Text(TextMarkdown):
+    """Subclass of TextMarkDown, i.e. short for ``text_markdown`` in the Ybe file."""
 
 
 @dataclass

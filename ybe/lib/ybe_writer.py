@@ -18,7 +18,7 @@ def write_ybe_file(ybe_file, fname, minimal=False):
     """Dump the provided Ybe file object to the indicated file.
 
     Args:
-        ybe_file (ybe.lib.ybe_file.YbeFile): the ybe file object to dump
+        ybe_file (ybe.lib.ybe_contents.YbeFile): the ybe file object to dump
         fname (str): the filename to dump to
         minimal (boolean): if set to True we only print the configured options.
             By default this flag is False, meaning we print all the available options, if needed with null placeholders.
@@ -44,6 +44,7 @@ def write_ybe_string(ybe_file, minimal=False):
     yaml = YAML(typ='rt')
     yaml.default_flow_style = False
     yaml.allow_unicode = True
+    yaml.width = float('inf')
     yaml.indent(mapping=4, offset=4, sequence=4)
 
     def beautify_line_spacings(s):
@@ -97,13 +98,13 @@ class YbeConversionVisitor(YbeNodeVisitor):
     def _visit_YbeFile(self, node):
         content = {'ybe_version': __version__}
 
-        if len(info := self.visit(node.file_info)) or not self.minimal:
+        if len(info := self.visit(node.info)) or not self.minimal:
             content['info'] = info
 
         content['questions'] = [self.visit(question) for question in node.questions]
         return content
 
-    def _visit_YbeFileInfo(self, node):
+    def _visit_YbeInfo(self, node):
         info = {}
 
         for item in ['title', 'description', 'document_version', 'creation_date']:
@@ -125,6 +126,10 @@ class YbeConversionVisitor(YbeNodeVisitor):
             dict: the question as a dictionary
         """
         data = {'id': node.id}
+
+        if node.points is not None or not self.minimal:
+            data['points'] = node.points
+
         data.update(self.visit(node.text))
         data['answers'] = [{'answer': self.visit(el)} for el in node.answers]
 
@@ -143,6 +148,10 @@ class YbeConversionVisitor(YbeNodeVisitor):
             dict: the question as a dictionary
         """
         data = {'id': node.id}
+
+        if node.points is not None or not self.minimal:
+            data['points'] = node.points
+
         data.update(self.visit(node.text))
         data['answers'] = [{'answer': self.visit(el)} for el in node.answers]
 
@@ -178,9 +187,6 @@ class YbeConversionVisitor(YbeNodeVisitor):
     def _visit_Text(self, node):
         return {'text': self._yaml_text_block(node.text)}
 
-    def _visit_TextLatex(self, node):
-        return {'text_latex': self._yaml_text_block(node.text)}
-
     def _visit_TextHTML(self, node):
         return {'text_html': self._yaml_text_block(node.text)}
 
@@ -198,7 +204,10 @@ class YbeConversionVisitor(YbeNodeVisitor):
         """
         data = {}
         data.update(self.visit(node.text))
-        data['points'] = node.points
+
+        if node.correct or not self.minimal:
+            data['correct'] = node.correct
+
         return data
 
     def _visit_MultipleResponseAnswer(self, node):
@@ -212,7 +221,10 @@ class YbeConversionVisitor(YbeNodeVisitor):
         """
         data = {}
         data.update(self.visit(node.text))
-        data['points'] = node.points
+
+        if node.correct or not self.minimal:
+            data['correct'] = node.correct
+
         return data
 
     def _visit_OpenQuestionOptions(self, node):

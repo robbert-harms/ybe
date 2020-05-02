@@ -8,9 +8,10 @@ import io
 import os
 import zipfile
 from lxml import etree
+from bs4 import BeautifulSoup
 
-from ybe.lib.ybe_contents import YbeFile, YbeFileInfo, MultipleChoice, MultipleResponse, OpenQuestion, TextHTML, Text, \
-    MultipleChoiceAnswer, MultipleResponseAnswer
+from ybe.lib.ybe_contents import YbeFile, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, TextHTML, Text, \
+    MultipleChoiceAnswer, MultipleResponseAnswer, ZipArchiveContext, DirectoryContext
 
 
 def read_qti_zip(zip_file):
@@ -25,7 +26,9 @@ def read_qti_zip(zip_file):
     Returns:
         ybe.lib.ybe_contents.YbeFile: an .ybe file with the content from the QTI zip file.
     """
+    path = None
     if isinstance(zip_file, str):
+        path = os.path.abspath(zip_file)
         archive = zipfile.ZipFile(zip_file, 'r')
     elif isinstance(zip_file, (bytes, bytearray)):
         archive = zipfile.ZipFile(io.BytesIO(zip_file), 'r')
@@ -41,7 +44,9 @@ def read_qti_zip(zip_file):
     def load_func(filename):
         return archive.read(filename)
 
-    return _load_qti_manifest(load_func)
+    ybe_file = _load_qti_manifest(load_func)
+    ybe_file.resource_context = ZipArchiveContext(path)
+    return ybe_file
 
 
 def read_qti_dir(dir_name):
@@ -63,7 +68,9 @@ def read_qti_dir(dir_name):
         with open(os.path.join(dir_name, filename), 'rb') as f:
             return f.read()
 
-    return _load_qti_manifest(load_func)
+    ybe_file = _load_qti_manifest(load_func)
+    ybe_file.resource_context = DirectoryContext(os.path.abspath(dir_name))
+    return ybe_file
 
 
 def _load_qti_manifest(file_load_func):
@@ -108,7 +115,7 @@ def _load_qti_manifest(file_load_func):
             questions.extend(_load_qti_questions(questions_tree))
 
     return YbeFile(questions=questions,
-                   file_info=YbeFileInfo(title=title, creation_date=datetime))
+                   info=YbeInfo(title=title, creation_date=datetime))
 
 
 def _load_qti_questions(xml):
@@ -167,11 +174,6 @@ def _qtimetadata_to_dict(qtimetadata):
 def _load_multiple_choice(question_node):
     """Load a multiple choice question from the given XML tree.
 
-    Note that in QTI 1.2 you can only specify a point for the question, not for the answers.
-    That is, you can not award different points for the different answers.
-
-    For Ybe conversion, the points are set to the answer marked correct.
-
     Args:
         question_node (etree): an question item node
 
@@ -180,7 +182,6 @@ def _load_multiple_choice(question_node):
     """
     meta_data = _qtimetadata_to_dict(question_node[0][0])
     text = _load_text(question_node[1][0])
-    points = float(meta_data['points_possible'])
 
     correct_answer = None
     for resprocessing_node in question_node[2]:
@@ -191,21 +192,15 @@ def _load_multiple_choice(question_node):
 
     answers = []
     for response_label in question_node[1][1][0]:
-        answer_points = 0
-        if response_label.get('ident') == correct_answer:
-            answer_points = points
-        answers.append(MultipleChoiceAnswer(text=_load_text(response_label[0]), points=answer_points))
+        answers.append(MultipleChoiceAnswer(text=_load_text(response_label[0]),
+                                            correct=(response_label.get('ident') == correct_answer)))
 
-    return MultipleChoice(id=question_node.get('ident'), text=text, answers=answers)
+    return MultipleChoice(id=question_node.get('ident'), text=text, answers=answers,
+                          points=float(meta_data['points_possible']))
 
 
 def _load_multiple_response(question_node):
     """Load a multiple response question from the given XML tree.
-
-    Note that in QTI 1.2 you can only specify a point for the question, not for the answers.
-    That is, you can not award different points for the different answers.
-
-    For Ybe conversion, the points are uniformly distributed over the answers marked correct.
 
     Args:
        question_node (etree): an question item node
@@ -215,18 +210,20 @@ def _load_multiple_response(question_node):
     """
     meta_data = _qtimetadata_to_dict(question_node[0][0])
     text = _load_text(question_node[1][0])
-    points = float(meta_data['points_possible'])
+
+    correct_answers = []
+    and_node = question_node[2][1][0][0]
+    for condition_node in and_node:
+        if condition_node.tag.endswith('varequal'):
+            correct_answers.append(condition_node.text)
 
     answers = []
     for response_label in question_node[1][1][0]:
-        answer_points = 0
-        # if response_label.get('ident') == correct_answer:
-        #     answer_points = points
-        # todo
+        answers.append(MultipleResponseAnswer(text=_load_text(response_label[0]),
+                       correct=(response_label.get('ident') in correct_answers)))
 
-        answers.append(MultipleResponseAnswer(text=_load_text(response_label[0]), points=answer_points))
-
-    return MultipleResponse(id=question_node.get('ident'), text=text, answers=answers)
+    return MultipleResponse(id=question_node.get('ident'), text=text, answers=answers,
+                            points=float(meta_data['points_possible']))
 
 
 def _load_open_question(question_node):
@@ -250,13 +247,28 @@ def _load_text(material_node):
         material_node (etree): an question item node
 
     Returns:
-         ybe.lib.ybe_contents.TextBlock: a text node subclass
+         ybe.lib.ybe_contents.TextNode: a text node subclass
     """
     mattext = material_node[0]
     texttype = mattext.get('texttype')
 
     if texttype == 'text/html':
-        text = TextHTML(mattext.text)
+        parsed_html = BeautifulSoup(mattext.text, 'lxml')
+
+        def only_local(src):
+            return src.startswith('%24IMS-CC-FILEBASE%24/') or src.startswith('$IMS-CC-FILEBASE$/')
+
+        for img in parsed_html.find_all('img', src=only_local):
+            src = img.get('src')
+            if src.startswith('%24IMS-CC-FILEBASE%24/'):
+                src = src[len('%24IMS-CC-FILEBASE%24/'):]
+            elif src.startswith('$IMS-CC-FILEBASE$/'):
+                src = src[len('$IMS-CC-FILEBASE$/'):]
+
+            img['src'] = src[:src.find('?')]
+
+        html_without_html_and_body_tags = "".join([str(x) for x in parsed_html.body.children])
+        text = TextHTML(html_without_html_and_body_tags)
     elif texttype == 'text/plain':
         text = Text(mattext.text)
     else:

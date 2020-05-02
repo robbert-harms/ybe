@@ -5,14 +5,15 @@ __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
 import collections
+import os
 
 from ruamel import yaml
 
 from ybe.lib.errors import YbeLoadingError, YbeMultipleLoadingErrors
-from ybe.lib.ybe_contents import YbeFile, YbeFileInfo, MultipleChoice, OpenQuestion, QuestionMetaData, \
+from ybe.lib.ybe_contents import YbeFile, YbeInfo, MultipleChoice, OpenQuestion, QuestionMetaData, \
     GeneralQuestionMetaData, LifecycleQuestionMetaData, ClassificationQuestionMetaData, OpenQuestionOptions, \
-    Text, TextLatex, AnalyticsQuestionMetaData, MultipleChoiceAnswer, TextMarkdown, TextHTML, MultipleResponse, \
-    MultipleResponseAnswer
+    Text, AnalyticsQuestionMetaData, MultipleChoiceAnswer, TextMarkdown, TextHTML, MultipleResponse, \
+    MultipleResponseAnswer, DirectoryContext
 
 
 def read_ybe_file(fname):
@@ -28,7 +29,9 @@ def read_ybe_file(fname):
         ybe.lib.errors.YbeLoadingError: if the file could not be loaded due to syntax errors
     """
     with open(fname, "r") as f:
-        return read_ybe_string(f.read())
+        ybe_file = read_ybe_string(f.read())
+        ybe_file.resource_context = DirectoryContext(os.path.dirname(os.path.abspath(fname)))
+        return ybe_file
 
 
 def read_ybe_string(ybe_str):
@@ -52,7 +55,7 @@ def read_ybe_string(ybe_str):
         raise YbeLoadingError('Missing "ybe_version" specifier.')
 
     return YbeFile(questions=_load_questions(items.get('questions', [])),
-                   file_info=YbeFileInfo(**items.get('info', {})))
+                   info=YbeInfo(**items.get('info', {})))
 
 
 def _load_questions(node):
@@ -72,6 +75,7 @@ def _load_questions(node):
             results.append(_load_question(question))
         except YbeLoadingError as ex:
             ex.question_ind = ind
+            ex.question_id = list(question.values())[0].get('id')
             exceptions.append(ex)
             continue
 
@@ -116,14 +120,14 @@ def _load_question(node):
     return question_loader(question_content)
 
 
-def _load_multiple_choice(node):
-    """Load the information of a multiple choice question.
+def _load_question_basics(node):
+    """Load the basic information of an Ybe question.
 
     Args:
         node (dict): the question information
 
     Returns:
-        ybe.lib.ybe_contents.MultipleChoice: the loaded question object, parsed from the provided information
+        dict: basic information for a Ybe question.
     """
     exceptions = []
 
@@ -138,6 +142,33 @@ def _load_multiple_choice(node):
         exceptions.append(ex)
 
     try:
+        points = _load_points(node.get('points'), must_be_set=True)
+    except YbeLoadingError as ex:
+        exceptions.append(ex)
+
+    if len(exceptions):
+        raise YbeMultipleLoadingErrors(exceptions)
+
+    return {'id': node.get('id'), 'text': text, 'meta_data': meta_data, 'points': points}
+
+
+def _load_multiple_choice(node):
+    """Load the information of a multiple choice question.
+
+    Args:
+        node (dict): the question information
+
+    Returns:
+        ybe.lib.ybe_contents.MultipleChoice: the loaded question object, parsed from the provided information
+    """
+    exceptions = []
+
+    try:
+        basic_info = _load_question_basics(node)
+    except YbeLoadingError as ex:
+        exceptions.append(ex)
+
+    try:
         answers = _load_multiple_choice_answers(node.get('answers', []))
     except YbeLoadingError as ex:
         exceptions.append(ex)
@@ -145,7 +176,7 @@ def _load_multiple_choice(node):
     if len(exceptions):
         raise YbeMultipleLoadingErrors(exceptions)
 
-    return MultipleChoice(id=node.get('id'), text=text, answers=answers, meta_data=meta_data)
+    return MultipleChoice(answers=answers, **basic_info)
 
 
 def _load_multiple_response(node):
@@ -160,12 +191,7 @@ def _load_multiple_response(node):
     exceptions = []
 
     try:
-        text = _load_text_from_node(node)
-    except YbeLoadingError as ex:
-        exceptions.append(ex)
-
-    try:
-        meta_data = _load_question_meta_data(node.get('meta_data', {}))
+        basic_info = _load_question_basics(node)
     except YbeLoadingError as ex:
         exceptions.append(ex)
 
@@ -177,7 +203,7 @@ def _load_multiple_response(node):
     if len(exceptions):
         raise YbeMultipleLoadingErrors(exceptions)
 
-    return MultipleResponse(id=node.get('id'), text=text, answers=answers, meta_data=meta_data)
+    return MultipleResponse(answers=answers, **basic_info)
 
 
 def _load_open_question(node):
@@ -192,12 +218,7 @@ def _load_open_question(node):
     exceptions = []
 
     try:
-        text = _load_text_from_node(node)
-    except YbeLoadingError as ex:
-        exceptions.append(ex)
-
-    try:
-        meta_data = _load_question_meta_data(node.get('meta_data', {}))
+        basic_info = _load_question_basics(node)
     except YbeLoadingError as ex:
         exceptions.append(ex)
 
@@ -206,15 +227,10 @@ def _load_open_question(node):
     except YbeLoadingError as ex:
         exceptions.append(ex)
 
-    try:
-        points = _load_points(node.get('points'), must_be_set=False)
-    except YbeLoadingError as ex:
-        exceptions.append(ex)
-
     if len(exceptions):
         raise YbeMultipleLoadingErrors(exceptions)
 
-    return OpenQuestion(id=node.get('id'), text=text, options=options, meta_data=meta_data, points=points)
+    return OpenQuestion(options=options, **basic_info)
 
 
 def _load_multiple_choice_answers(node):
@@ -231,17 +247,14 @@ def _load_multiple_choice_answers(node):
     answers = []
     for ind, item in enumerate(node):
         content = item['answer']
-
-        points = 0
-        try:
-            points = _load_points(content.get('points'), must_be_set=True)
-        except YbeLoadingError as ex:
-            exceptions.append(YbeLoadingError(f'Answer {ind}: {ex.description}'))
-
         answers.append(MultipleChoiceAnswer(
             text=_load_text_from_node(content),
-            points=points
+            correct=content.get('correct', False)
         ))
+
+    if not (s := sum(answer.correct for answer in answers)) == 1:
+        exceptions.append(YbeLoadingError(f'A multiple choice question must have exactly '
+                                          f'1 answer marked as correct, {s} marked.'))
 
     if len(exceptions):
         raise YbeMultipleLoadingErrors(exceptions)
@@ -264,16 +277,14 @@ def _load_multiple_response_answers(node):
     for ind, item in enumerate(node):
         content = item['answer']
 
-        points = 0
-        try:
-            points = _load_points(content.get('points'), must_be_set=True)
-        except YbeLoadingError as ex:
-            exceptions.append(YbeLoadingError(f'Answer {ind}: {ex.description}'))
-
         answers.append(MultipleResponseAnswer(
             text=_load_text_from_node(content),
-            points=points
+            correct=content.get('correct', False)
         ))
+
+    if not (s := sum(answer.correct for answer in answers)) > 0:
+        exceptions.append(YbeLoadingError(f'A multiple response question must have at least '
+                                          f'1 answer marked as correct, {s} marked.'))
 
     if len(exceptions):
         raise YbeMultipleLoadingErrors(exceptions)
@@ -317,11 +328,10 @@ def _load_text_from_node(node):
         node (dict): the information of the question to get the right text object for
 
     Returns:
-        ybe.lib.ybe_contents.TextBlock: the correct implementation of the question text
+        ybe.lib.ybe_contents.TextNode: the correct implementation of the question text
     """
     text_modes = {
         'text': Text,
-        'text_latex': TextLatex,
         'text_markdown': TextMarkdown,
         'text_html': TextHTML
     }

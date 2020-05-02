@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.imsglobal.org/xsd/ims_qtiasiv1p2 http://www.imsglobal.org/xsd/ims_qtiasiv1p2p1.xsd">
+  <assessment ident="g63c77d5d2aa29f7cbd7861d4498f9b8f" title="Sample Quiz">
+    <qtimetadata>
+      <qtimetadatafield>
+        <fieldlabel>cc_maxattempts</fieldlabel>
+        <fieldentry>1</fieldentry>
+      </qtimetadatafield>
+    </qtimetadata>
+    <section ident="root_section">
+      <item ident="g588cd357ff565bc55b6b217aec86cd47" title="Question">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>multiple_choice_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>92110,77429,2868,98345</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>ge0ff815db4442e6b664fa72ae9bf2cf2</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;
+&lt;p&gt;&lt;span style="font-size: 14pt;"&gt;&lt;em&gt;Here is a sample multiple choice question. Select the pencil icon to make it your own. &lt;/em&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Bold&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Italic&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span style="text-decoration: underline;"&gt;Underlined&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span style="color: #ff0000;"&gt;In red&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span style="color: #000000;"&gt;Table:&lt;/span&gt;&lt;/p&gt;
+&lt;table style="border-collapse: collapse; width: 100%;" border="1"&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style="width: 33.3333%;"&gt;&lt;/td&gt;
+&lt;td style="width: 33.3333%;"&gt;&lt;/td&gt;
+&lt;td style="width: 33.3333%;"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="width: 33.3333%;"&gt;&lt;/td&gt;
+&lt;td style="width: 33.3333%;"&gt;&lt;/td&gt;
+&lt;td style="width: 33.3333%;"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="width: 33.3333%;"&gt;&lt;/td&gt;
+&lt;td style="width: 33.3333%;"&gt;&lt;/td&gt;
+&lt;td style="width: 33.3333%;"&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;img src="%24IMS-CC-FILEBASE%24/homeicon.png?canvas_download=1&amp;amp;canvas_qs_download_frd=1" alt="homeicon.png"&gt;&lt;/p&gt;
+&lt;p&gt;Second image:&lt;/p&gt;
+&lt;p&gt;&lt;img src="%24IMS-CC-FILEBASE%24/ifs_080_by_krzysztofmarczak-d6onv1z.png.jpe?canvas_download=1&amp;amp;canvas_qs_download_frd=1" alt="ifs_080_by_krzysztofmarczak-d6onv1z.png.jpe"&gt;&lt;/p&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt;Equation:&lt;/p&gt;
+&lt;p&gt;&lt;img class="equation_image" title="\sum x^2" src="https://canvas.instructure.com/equation_images/%255Csum%2520x%255E2" alt="LaTeX: \sum x^2" data-equation-content="\sum x^2"&gt;&lt;/p&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response1" rcardinality="Single">
+            <render_choice>
+              <response_label ident="92110">
+                <material>
+                  <mattext texttype="text/plain">Option 1</mattext>
+                </material>
+              </response_label>
+              <response_label ident="77429">
+                <material>
+                  <mattext texttype="text/plain">Option 2</mattext>
+                </material>
+              </response_label>
+              <response_label ident="2868">
+                <material>
+                  <mattext texttype="text/plain">Option 3</mattext>
+                </material>
+              </response_label>
+              <response_label ident="98345">
+                <material>
+                  <mattext texttype="text/plain">Option 4</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="Yes">
+            <conditionvar>
+              <varequal respident="response1">92110</varequal>
+            </conditionvar>
+            <displayfeedback feedbacktype="Response" linkrefid="92110_fb"/>
+          </respcondition>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">92110</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+        <itemfeedback ident="92110_fb">
+          <flow_mat>
+            <material>
+              <mattext texttype="text/html">&lt;p&gt;Well done.&lt;/p&gt;</mattext>
+            </material>
+          </flow_mat>
+        </itemfeedback>
+      </item>
+      <item ident="g3cc6527e0b5df938cc8064aad6882e94" title="Question">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>short_answer_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>20172,53840,54734,73816</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>gaba4c3f04694c23e6381b41878bb5944</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;&lt;span style="font-size: 14pt;"&gt;&lt;em&gt;Here is a sample "Fill in the Blank" questions. Select the pencil icon to make it your own. &lt;/em&gt;&lt;/span&gt;&lt;/div&gt;</mattext>
+          </material>
+          <response_str ident="response1" rcardinality="Single">
+            <render_fib>
+              <response_label ident="answer1" rshuffle="No"/>
+            </render_fib>
+          </response_str>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition continue="No">
+            <conditionvar>
+              <varequal respident="response1">Option 1</varequal>
+              <varequal respident="response1">Option 2</varequal>
+              <varequal respident="response1">Option 3</varequal>
+              <varequal respident="response1">Option 4</varequal>
+            </conditionvar>
+            <setvar action="Set" varname="SCORE">100</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+      <item ident="gcc2109f3b52b6166c39b28c0b7d6fbd2" title="Question">
+        <itemmetadata>
+          <qtimetadata>
+            <qtimetadatafield>
+              <fieldlabel>question_type</fieldlabel>
+              <fieldentry>matching_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>points_possible</fieldlabel>
+              <fieldentry>1.0</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>original_answer_ids</fieldlabel>
+              <fieldentry>10857,6665</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+              <fieldlabel>assessment_question_identifierref</fieldlabel>
+              <fieldentry>g6d70533fbe4a62957c42fa774ef4d06d</fieldentry>
+            </qtimetadatafield>
+          </qtimetadata>
+        </itemmetadata>
+        <presentation>
+          <material>
+            <mattext texttype="text/html">&lt;div&gt;&lt;span style="font-size: 14pt;"&gt;&lt;em&gt;Here is a sample Matching question. Select the pencil icon to make it your own. &lt;/em&gt;&lt;/span&gt;&lt;/div&gt;</mattext>
+          </material>
+          <response_lid ident="response_10857">
+            <material>
+              <mattext texttype="text/plain">Option 1</mattext>
+            </material>
+            <render_choice>
+              <response_label ident="6293">
+                <material>
+                  <mattext>A</mattext>
+                </material>
+              </response_label>
+              <response_label ident="4323">
+                <material>
+                  <mattext>B</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+          <response_lid ident="response_6665">
+            <material>
+              <mattext texttype="text/plain">Option 2</mattext>
+            </material>
+            <render_choice>
+              <response_label ident="6293">
+                <material>
+                  <mattext>A</mattext>
+                </material>
+              </response_label>
+              <response_label ident="4323">
+                <material>
+                  <mattext>B</mattext>
+                </material>
+              </response_label>
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+          </outcomes>
+          <respcondition>
+            <conditionvar>
+              <varequal respident="response_10857">6293</varequal>
+            </conditionvar>
+            <setvar varname="SCORE" action="Add">50.00</setvar>
+          </respcondition>
+          <respcondition>
+            <conditionvar>
+              <varequal respident="response_6665">4323</varequal>
+            </conditionvar>
+            <setvar varname="SCORE" action="Add">50.00</setvar>
+          </respcondition>
+        </resprocessing>
+      </item>
+    </section>
+  </assessment>
+</questestinterop>

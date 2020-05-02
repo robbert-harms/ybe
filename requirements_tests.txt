@@ -1,1 +1,4 @@
+ruamel.yaml
+lxml
+pypandoc
 coverage

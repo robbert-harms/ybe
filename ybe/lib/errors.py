@@ -31,19 +31,21 @@ class YbeLoadingError(YbeBaseError):
 
 class YbeMultipleLoadingErrors(YbeLoadingError):
 
-    def __init__(self, items, question_ind=None):
+    def __init__(self, items, question_ind=None, question_id=None):
         """Collection of multiple loading exceptions.
 
         Args:
             List[YbeLoadingError]: list of exceptions
             question_ind (int): the question index regarding this collection of errors
+            question_id (str): the ID of the question raising the error
         """
         self.items = items
         self.question_ind = question_ind
+        self.question_id = question_id
 
     def to_string(self, in_recurse=False):
         if self.question_ind is not None and not in_recurse:
-            result = f'Errors loading question number {self.question_ind + 1}: \n'
+            result = f'Errors loading question number {self.question_ind + 1} (id: {self.question_id}): \n'
             for item in self.items:
                 if isinstance(item, YbeMultipleLoadingErrors):
                     result += indent(item.to_string(True), '    ') + '\n'

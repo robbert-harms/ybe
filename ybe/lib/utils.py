@@ -4,7 +4,22 @@ __maintainer__ = 'Robbert Harms'
 __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
+import os
 from dataclasses import MISSING
+
+
+def copy_ybe_resources(ybe_file, dirname):
+    """Copy all the resource specified in the provided Ybe file object to the provided directory.
+
+    Args:
+        ybe_file (ybe.lib.ybe_contents.YbeFile): the Ybe file data to search for (external) resources.
+        dirname (str): the directory to write the data to.
+    """
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+
+    for resource in ybe_file.get_resources():
+        ybe_file.resource_context.copy_resource(resource, dirname)
 
 
 def get_default_value(field):
