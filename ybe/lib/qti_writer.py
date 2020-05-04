@@ -40,10 +40,32 @@ def write_qti_dir(ybe_file, dirname):
     if not os.path.exists(d := os.path.join(dirname, assessment_identifier)):
         os.makedirs(d)
 
+    _write_assessment_meta(ybe_file, dirname, assessment_identifier)
     resources = _write_questions_data(ybe_file, dirname, assessment_identifier, dependency_identifier)
     _write_qti_manifest(ybe_file, dirname, assessment_identifier, dependency_identifier, resources)
 
     # with open(os.path.join(dirname, 'imsmanifest.xml'), 'w') as f:
+
+
+def _write_assessment_meta(ybe_file, dirname, assessment_identifier):
+    """Write the QTI data manifest.
+
+        Args:
+            ybe_file (ybe.lib.ybe_contents.YbeFile): the ybe file object to dump
+            dirname (str): the directory to write the manifest (``imsmanifest.xml``) to.
+            assessment_identifier (str): UUID of the assessment
+            dependency_identifier (str): UUID of the dependencies
+        """
+    template_items = {
+        'title': ybe_file.info.title,
+        'description': ybe_file.description,
+        # 'points_possible': ybe_file
+        'assignment_identifier': uuid.uuid4().hex,
+        'assessment_identifier': assessment_identifier,
+        'assignment_group_identifier': uuid.uuid4().hex
+    }
+    template = pkg_resources.read_text('ybe.data.qti_templates', 'assessment_meta.xml')
+    manifest_str = template.format(**template_items)
 
 
 def _write_questions_data(ybe_file, dirname, assessment_identifier, dependency_identifier):
@@ -76,16 +98,3 @@ def _write_qti_manifest(ybe_file, dirname, assessment_identifier, dependency_ide
     with open(os.path.join(dirname, 'imsmanifest.xml'), 'w') as f:
         f.write(manifest_str)
 
-
-# todo complete
-def _write_assessment_meta(ybe_file, dirname, assessment_identifier):
-    template_items = {
-        'title': ybe_file.info.title,
-        'description': ybe_file.description,
-        # todo points_possible
-        'assignment_identifier': uuid.uuid4().hex,
-        'assessment_identifier': assessment_identifier,
-        'assignment_group_identifier': uuid.uuid4().hex
-    }
-    template = pkg_resources.read_text('ybe.data.qti_templates', 'assessment_meta.xml')
-    manifest_str = template.format(**template_items)
