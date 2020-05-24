@@ -8,3 +8,4 @@ sphinx-argparse
 sphinxcontrib-bibtex
 pypandoc
 jinja2
+beautifulsoup4

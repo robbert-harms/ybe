@@ -3,3 +3,4 @@ lxml
 pypandoc
 coverage
 jinja2
+beautifulsoup4

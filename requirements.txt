@@ -2,3 +2,4 @@ ruamel.yaml
 lxml
 pypandoc
 jinja2
+beautifulsoup4
