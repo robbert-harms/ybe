@@ -1,3 +1,4 @@
 ruamel.yaml
 lxml
 pypandoc
+jinja2

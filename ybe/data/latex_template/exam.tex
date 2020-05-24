@@ -1,0 +1,75 @@
+\documentclass[11pt,english,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{babel,textcomp}
+\usepackage{graphicx}
+
+%% enlarge the bottom margin a bit
+\usepackage{geometry}
+\geometry{a4paper,bottom=30mm}
+
+%% allows us to count the number of pages
+\usepackage{lastpage}
+
+%% better looking tables by default
+\usepackage{booktabs}
+
+%% Suggested font
+\usepackage{palatino}
+
+%% for using colors
+\usepackage[dvipsnames]{xcolor}
+
+%% for enumeration
+\usepackage{enumitem}
+
+
+%% To allow multiline cells in a table
+\newcommand{\breakable}[1]{{%
+	\renewcommand{\arraystretch}{1.1}%
+	\begin{tabular}[t]{@{}l@{}}
+	#1\\
+	\end{tabular}}}
+
+%% disable indentation of first line of paragraph
+\setlength{\parindent}{0em}
+
+
+%% to allow Latex compile this Jinja2/Tex file without Jinja2 rendering
+\newcommand{\VAR}[1]{}
+\newcommand{\BLOCK}[1]{}
+
+%% Pandoc includes a tightlist as output
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+\begin{document}
+\BLOCK{ include 'header.tex' }
+
+\VAR{introduction or ''}
+
+\BLOCK{ set real_question_count = namespace(value=0) }
+\BLOCK{ for question in exam.questions }
+    \BLOCK{ if question is multiple_choice }
+        \BLOCK{ set real_question_count.value = real_question_count.value + 1 }
+		\BLOCK{ with question=question, question_index=real_question_count.value }
+			\BLOCK{ include 'multiple_choice_question.tex' }
+		\BLOCK{ endwith }
+	\BLOCK{ elif question is open }
+        \BLOCK{ set real_question_count.value = real_question_count.value + 1 }
+		\BLOCK{ with question=question, question_index=real_question_count.value }
+			\BLOCK{ include 'open_question.tex' }
+		\BLOCK{ endwith }
+	\BLOCK{ elif question is multiple_response }
+        \BLOCK{ set real_question_count.value = real_question_count.value + 1 }
+		\BLOCK{ with question=question, question_index=real_question_count.value }
+			\BLOCK{ include 'multiple_response_question.tex' }
+		\BLOCK{ endwith }
+	\BLOCK{ elif question is text_only }
+		\BLOCK{ with question=question, question_index=loop.index }
+			\BLOCK{ include 'text_only_question.tex' }
+		\BLOCK{ endwith }
+	\BLOCK{ endif }
+\BLOCK{ endfor }
+
+\end{document}

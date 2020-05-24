@@ -4,7 +4,7 @@ info:
     title: Example questions
     description: Some examples of describing questions.
     document_version: 0.1.0
-    creation_date: 2020-04-07
+    date: 2020-04-07
     authors:
         - Robbert Harms
         - Sanne Schoenmakers
@@ -13,13 +13,12 @@ questions:
 - open:
     id: '#2003_2'
     points: 3.14
-    text: This open question does not have any meta data or options.
+    text: Example open question.
 
 - multiple_choice:
     id: 2013_q2
     points: 1
-    text: This question also does not have any meta data, but does have an image!
-        Although it continues on the next line, newline breaks are not kept intact, for that, use the |- modifier.
+    text: Example multiple choice question (question with only one correct answer possible).
     answers:
         - answer:
             text: First answer
@@ -34,7 +33,7 @@ questions:
 - multiple_response:
     id: 2015_q1
     points: 1
-    text: A multiple choice question allowing multiple answers
+    text: A multiple response question is a multiple choice question where multiple answers are possible.
     answers:
         - answer:
             text: First answer
@@ -47,6 +46,10 @@ questions:
         - answer:
             text: Fourth answer
 
+- text_only:
+    id: 2015_q2
+    text: This is not a question, but a piece of text. Can be used to inject information in a series of questions.
+
 - multiple_choice:
     id: <some_random_string>
     points: 1
@@ -54,6 +57,8 @@ questions:
         Due to the "|" operator, all newlines in this text will be kept intact.
         That is, this line will appear on a new line in the example file.
         The "-" operator at the end (i.e "|-") indicates we want to remove any pending new line at the end.
+
+        Furthermore, this question adds a lot of meta data to the question.
 
         Question: Which basic variants of line folding are there in Ybe?
     answers:
@@ -97,17 +102,14 @@ questions:
         2. *with this in italics*
         3. **and in bold**
 
-        This is a famous formula inline: $E=mc^2$ and this is a basic displayed formulae:
+        This is a famous formula inline: $E=mc^2$ and this is a basic displayed formula:
 
-        $$ a^2 = b^2 + c^2$$
+        $$ a^2 = b^2 + c^2 $$
 
         And it all costs $0.0!
 
-        Next to that, here is an image from Escher:
-        ![](escher.jpg)
-
-        And an inline hello world image:
-        ![Hello World](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEYAAAAUCAAAAAAVAxSkAAABrUlEQVQ4y+3TPUvDQBgH8OdDOGa+oUMgk2MpdHIIgpSUiqC0OKirgxYX8QVFRQRpBRF8KShqLbgIYkUEteCgFVuqUEVxEIkvJFhae3m8S2KbSkcFBw9yHP88+eXucgH8kQZ/jSm4VDaIy9RKCpKac9NKgU4uEJNwhHhK3qvPBVO8rxRWmFXPF+NSM1KVMbwriAMwhDgVcrxeMZm85GR0PhvGJAAmyozJsbsxgNEir4iEjIK0SYqGd8sOR3rJAGN2BCEkOxhxMhpd8Mk0CXtZacxi1hr20mI/rzgnxayoidevcGuHXTC/q6QuYSMt1jC+gBIiMg12v2vb5NlklChiWnhmFZpwvxDGzuUzV8kOg+N8UUvNBp64vy9q3UN7gDXhwWLY2nMC3zRDibfsY7wjEkY79CdMZhrxSqqzxf4ZRPXwzWJirMicDa5KwiPeARygHXKNMQHEy3rMopDR20XNZGbJzUtrwDC/KshlLDWyqdmhxZzCsdYmf2fWZPoxCEDyfIvdtNQH0PRkH6Q51g8rFO3Qzxh2LbItcDCOpmuOsV7ntNaERe3v/lP/zO8yn4N+yNPrekmPAAAAAElFTkSuQmCC)
+        Next to that, here is an image from Escher:\
+        ![Escher](escher.jpg){ width=100% }
     options:
         max_words: 1000
         min_words: 100

@@ -1,0 +1,44 @@
+<item ident="{question_identifier}" title="{question_title}">
+    <itemmetadata>
+      <qtimetadata>
+        <qtimetadatafield>
+          <fieldlabel>question_type</fieldlabel>
+          <fieldentry>multiple_choice_question</fieldentry>
+        </qtimetadatafield>
+        <qtimetadatafield>
+          <fieldlabel>points_possible</fieldlabel>
+          <fieldentry>{points_possible:.2f}</fieldentry>
+        </qtimetadatafield>
+        <qtimetadatafield>
+          <fieldlabel>original_answer_ids</fieldlabel>
+          <fieldentry>{original_answer_ids}</fieldentry>
+        </qtimetadatafield>
+        <qtimetadatafield>
+          <fieldlabel>assessment_question_identifierref</fieldlabel>
+          <fieldentry>{assessment_question_identifierref}</fieldentry>
+        </qtimetadatafield>
+      </qtimetadata>
+    </itemmetadata>
+    <presentation>
+      <material>
+        <mattext texttype="text/html">{question_text}</mattext>
+      </material>
+      <response_lid ident="response1" rcardinality="Single">
+        <render_choice>
+            {answers}
+        </render_choice>
+      </response_lid>
+    </presentation>
+    <resprocessing>
+      <outcomes>
+        <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+      </outcomes>
+      <respcondition continue="No">
+        <conditionvar>
+          <varequal respident="response1">{correct_answer_id}</varequal>
+        </conditionvar>
+        <setvar action="Set" varname="SCORE">100</setvar>
+      </respcondition>
+    </resprocessing>
+</item>
+

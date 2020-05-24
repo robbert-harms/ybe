@@ -2,3 +2,4 @@ ruamel.yaml
 lxml
 pypandoc
 coverage
+jinja2

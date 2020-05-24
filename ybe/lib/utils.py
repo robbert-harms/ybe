@@ -7,19 +7,50 @@ __licence__ = 'GPL v3'
 import os
 from dataclasses import MISSING
 
+import pypandoc
 
-def copy_ybe_resources(ybe_file, dirname):
+
+def markdown_to_latex(text):
+    """Convert text in MarkDown format to Latex.
+
+    Args:
+        text: the text in Markdown format
+
+    Returns:
+        str: a Latex conversion of the text in this node
+    """
+    return pypandoc.convert_text(text, 'latex', 'md')
+
+
+def html_to_latex(text):
+    """Convert text in HTML format to Latex.
+
+    Args:
+        text: the text in HTML format
+
+    Returns:
+        str: a Latex conversion of the text in this node
+    """
+    return pypandoc.convert_text(text, 'latex', 'html')
+
+
+def copy_ybe_resources(ybe_exam, dirname):
     """Copy all the resource specified in the provided Ybe file object to the provided directory.
 
     Args:
-        ybe_file (ybe.lib.ybe_contents.YbeFile): the Ybe file data to search for (external) resources.
+        ybe_exam (ybe.lib.ybe_contents.YbeExam): the Ybe exam to search for (external) resources.
         dirname (str): the directory to write the data to.
+
+    Returns:
+        List[str]: list of path names to the copied resources
     """
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    for resource in ybe_file.get_resources():
-        ybe_file.resource_context.copy_resource(resource, dirname)
+    paths = []
+    for resource in ybe_exam.get_resources():
+        paths.append(ybe_exam.resource_context.copy_resource(resource, dirname))
+    return paths
 
 
 def get_default_value(field):

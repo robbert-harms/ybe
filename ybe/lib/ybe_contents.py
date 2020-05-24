@@ -9,13 +9,14 @@ __licence__ = 'GPL v3'
 import os
 import shutil
 import zipfile
+from datetime import date
 
 import pypandoc
 from bs4 import BeautifulSoup
 from dataclasses import dataclass, field, fields
 from typing import List, Union
 
-from ybe.lib.utils import get_default_value
+from ybe.lib.utils import get_default_value, markdown_to_latex, html_to_latex
 
 
 @dataclass
@@ -129,6 +130,9 @@ class YbeResourceContext:
         Args:
             resource (YbeResource): the resource to copy
             dirname (str): the directory to copy to
+
+        Returns:
+            str: the path to the new file
         """
         raise NotImplementedError()
 
@@ -143,7 +147,7 @@ class ZipArchiveContext(YbeResourceContext):
             os.makedirs(dirname)
 
         if os.path.isabs(resource.path):
-            shutil.copy(resource.path, dirname)
+            return shutil.copy(resource.path, dirname)
         else:
             if subdir := os.path.dirname(resource.path):
                 dirname = os.path.join(dirname, subdir) + '/'
@@ -152,7 +156,7 @@ class ZipArchiveContext(YbeResourceContext):
                     os.makedirs(dirname)
 
             archive = zipfile.ZipFile(self.path, 'r')
-            archive.extract(resource.path, dirname)
+            return archive.extract(resource.path, dirname)
 
 
 @dataclass
@@ -165,7 +169,7 @@ class DirectoryContext(YbeResourceContext):
             os.makedirs(dirname)
 
         if os.path.isabs(resource.path):
-            shutil.copy(resource.path, dirname)
+            return shutil.copy(resource.path, dirname)
         else:
             if subdir := os.path.dirname(resource.path):
                 dirname = os.path.join(dirname, subdir) + '/'
@@ -173,11 +177,11 @@ class DirectoryContext(YbeResourceContext):
                 if not os.path.exists(dirname):
                     os.makedirs(dirname)
 
-            shutil.copy(os.path.join(self.path, resource.path), dirname)
+            return shutil.copy(os.path.join(self.path, resource.path), dirname)
 
 
 @dataclass
-class YbeFile(SimpleYbeNode):
+class YbeExam(SimpleYbeNode):
     """Representation of an Ybe file.
 
     An Ybe file basically consists of a header followed of a number of questions.
@@ -185,6 +189,14 @@ class YbeFile(SimpleYbeNode):
     info: YbeInfo = field(default_factory=lambda: YbeInfo())
     questions: List[Question] = field(default_factory=list)
     resource_context: YbeResourceContext = None
+
+    def get_points_possible(self):
+        """Get the maximum number of points possible in this exam.
+
+        Returns:
+            float: the maximum number of points possible.
+        """
+        return sum(question.points for question in self.questions)
 
     def __str__(self):
         """Prints itself in Ybe Yaml format."""
@@ -199,13 +211,13 @@ class YbeInfo(SimpleYbeNode):
     description: str = None
     document_version: str = None
     authors: List[str] = field(default_factory=list)
-    creation_date: str = None
+    date: date = None
 
 
 @dataclass
 class Question(YbeExamElement):
     id: str = ''
-    points: Union[float, int] = None
+    points: Union[float, int] = 0
     text: TextNode = field(default_factory=lambda: Text())
     meta_data: QuestionMetaData = field(default_factory=lambda: QuestionMetaData())
 
@@ -223,6 +235,11 @@ class MultipleResponse(Question):
 @dataclass
 class OpenQuestion(Question):
     options: OpenQuestionOptions = field(default_factory=lambda: OpenQuestionOptions())
+
+
+@dataclass
+class TextOnlyQuestion(Question):
+    pass
 
 
 @dataclass
@@ -288,10 +305,18 @@ class TextNode(SimpleYbeNode):
     text: str = ''
 
     def to_html(self):
-        """Return a copy of this textblock in HTML format.
+        """Convert the text in this node to HTML and return that.
 
         Returns:
-            TextHTML: a HTML conversion of this text block node
+            str: a HTML conversion of this text block node
+        """
+        raise NotImplementedError()
+
+    def to_latex(self):
+        """Convert the text in this node to Latex and return that.
+
+        Returns:
+            str: a Latex conversion of the text in this node
         """
         raise NotImplementedError()
 
@@ -301,10 +326,13 @@ class TextMarkdown(TextNode):
     """Text in Markdown format, use as ``text_markdown``."""
 
     def get_resources(self):
-        return self.to_html().get_resources()
+        return TextHTML(self.to_html()).get_resources()
 
     def to_html(self):
-        return TextHTML(pypandoc.convert_text(self.text, 'html', 'md', extra_args=['--mathjax']))
+        return pypandoc.convert_text(self.text, 'html', 'md', extra_args=['--mathjax'])
+
+    def to_latex(self):
+        return markdown_to_latex(self.text)
 
 
 @dataclass
@@ -323,7 +351,10 @@ class TextHTML(TextNode):
         return resources
 
     def to_html(self):
-        return self
+        return self.text
+
+    def to_latex(self):
+        return html_to_latex(self.text)
 
 
 @dataclass

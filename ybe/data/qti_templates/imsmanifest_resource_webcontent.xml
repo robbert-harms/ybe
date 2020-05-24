@@ -1,3 +1,0 @@
-<resource identifier="{resource_id}" type="webcontent" href="{path}">
-  <file href="{path}"/>
-</resource>

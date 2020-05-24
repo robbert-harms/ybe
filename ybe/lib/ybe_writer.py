@@ -4,6 +4,7 @@ __maintainer__ = 'Robbert Harms'
 __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
+import os
 from io import StringIO
 from ruamel.yaml import YAML
 from ruamel.yaml import scalarstring
@@ -14,24 +15,27 @@ from ybe.lib.errors import YbeVisitingError
 from ybe.lib.ybe_contents import YbeNodeVisitor
 
 
-def write_ybe_file(ybe_file, fname, minimal=False):
+def write_ybe_file(ybe_exam, fname, minimal=False):
     """Dump the provided Ybe file object to the indicated file.
 
     Args:
-        ybe_file (ybe.lib.ybe_contents.YbeFile): the ybe file object to dump
+        ybe_exam (ybe.lib.ybe_contents.YbeExam): the ybe file object to dump
         fname (str): the filename to dump to
         minimal (boolean): if set to True we only print the configured options.
             By default this flag is False, meaning we print all the available options, if needed with null placeholders.
     """
+    if not os.path.exists(dir := os.path.dirname(fname)):
+        os.makedirs(dir)
+
     with open(fname, 'w') as f:
-        f.write(write_ybe_string(ybe_file, minimal=minimal))
+        f.write(write_ybe_string(ybe_exam, minimal=minimal))
 
 
-def write_ybe_string(ybe_file, minimal=False):
-    """Dump the provided YbeFile as a .ybe formatted string.
+def write_ybe_string(ybe_exam, minimal=False):
+    """Dump the provided YbeExam as a .ybe formatted string.
 
     Args:
-        ybe_file (ybe.lib.ybe_contents.YbeFile): the ybe file contents to dump
+        ybe_exam (ybe.lib.ybe_contents.YbeExam): the ybe file contents to dump
         minimal (boolean): if set to True we only print the configured options.
             By default this flag is False, meaning we print all the available options, if needed with null placeholders.
 
@@ -39,7 +43,7 @@ def write_ybe_string(ybe_file, minimal=False):
         str: an .ybe (Yaml) formatted string
     """
     visitor = YbeConversionVisitor(minimal=minimal)
-    content = visitor.visit(ybe_file)
+    content = visitor.visit(ybe_exam)
 
     yaml = YAML(typ='rt')
     yaml.default_flow_style = False
@@ -66,7 +70,7 @@ def write_ybe_string(ybe_file, minimal=False):
                     in_questions_block = True
 
             if any(new_line.startswith(el) for el in ['info', 'questions:', '- multiple_choice:', '- open:',
-                                                      '- multiple_response:'])\
+                                                      '- multiple_response:', '- text_only:'])\
                     and not previous_new_line.startswith('\nquestions:'):
                 new_line = '\n' + new_line
 
@@ -81,7 +85,7 @@ def write_ybe_string(ybe_file, minimal=False):
 class YbeConversionVisitor(YbeNodeVisitor):
 
     def __init__(self, minimal=False):
-        """Converts an YbeFile into a Python dictionary.
+        """Converts an YbeExam into a Python dictionary.
 
         Args:
             minimal (boolean): if set to True we only print the configured options.
@@ -95,7 +99,7 @@ class YbeConversionVisitor(YbeNodeVisitor):
             raise YbeVisitingError(f'Unknown node encountered of type {type(node)}.')
         return getattr(self, method)(node)
 
-    def _visit_YbeFile(self, node):
+    def _visit_YbeExam(self, node):
         content = {'ybe_version': __version__}
 
         if len(info := self.visit(node.info)) or not self.minimal:
@@ -107,7 +111,7 @@ class YbeConversionVisitor(YbeNodeVisitor):
     def _visit_YbeInfo(self, node):
         info = {}
 
-        for item in ['title', 'description', 'document_version', 'creation_date']:
+        for item in ['title', 'description', 'document_version', 'date']:
             if (value := getattr(node, item)) is not None or not self.minimal:
                 info[item] = value
 
@@ -183,6 +187,21 @@ class YbeConversionVisitor(YbeNodeVisitor):
             data['meta_data'] = meta_data
 
         return {'open': data}
+
+    def _visit_TextOnlyQuestion(self, node):
+        """Convert the given :class:`ybe.lib.ybe_contents.OpenQuestion` into a dictionary.
+
+        Args:
+            node (ybe.lib.ybe_contents.OpenQuestion): the question to convert
+
+        Returns:
+            dict: the question as a dictionary
+        """
+        data = {'id': node.id}
+        data.update(self.visit(node.text))
+        if len(meta_data := self.visit(node.meta_data)) or not self.minimal:
+            data['meta_data'] = meta_data
+        return {'text_only': data}
 
     def _visit_Text(self, node):
         return {'text': self._yaml_text_block(node.text)}

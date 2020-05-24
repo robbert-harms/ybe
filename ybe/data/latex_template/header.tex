@@ -1,0 +1,24 @@
+%% Header, with the university and faculty title
+%\setlength{\voffset}{-0.75in}
+\setlength{\headsep}{5pt}
+\centerline{\fontsize{25}{25pt}{\bfseries \VAR{header.university or '<header.university>'}}}
+\medskip
+\centerline{\fontsize{20.7}{20pt}\mdseries \VAR{header.faculty or '<header.faculty>'}}
+\vspace*{1.6em}
+
+%% Basic exam information
+\bgroup
+\def\arraystretch{1.3}
+\begin{tabular}{@{}ll@{}}
+	Course: & \breakable{\VAR{header.course or '<header.course>'}} \\ 
+	Responsible lecturers: & \breakable{\VAR{header.lecturers or '<header.lecturers>'}} \\ 
+	Day of examination: & \VAR{header.day or '<header.day>'} \\ 
+	Examination hours: & \VAR{header.hours or '<header.hours>'} \\ 
+	This exam consists of: & \pageref{LastPage} pages \\ 
+	Appendices: & \breakable{\VAR{header.appendices or '<header.appendices>'}} \\ 
+	Permitted aids: & \breakable{\VAR{header.aids or '<header.aids>'}} \\ 
+\end{tabular} 
+\egroup
+\vspace*{2.5em}
+
+

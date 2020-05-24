@@ -1,0 +1,42 @@
+<item ident="{question_identifier}" title="{question_title}">
+    <itemmetadata>
+      <qtimetadata>
+        <qtimetadatafield>
+          <fieldlabel>question_type</fieldlabel>
+          <fieldentry>essay_question</fieldentry>
+        </qtimetadatafield>
+        <qtimetadatafield>
+          <fieldlabel>points_possible</fieldlabel>
+          <fieldentry>{points_possible:.2f}</fieldentry>
+        </qtimetadatafield>
+        <qtimetadatafield>
+          <fieldlabel>original_answer_ids</fieldlabel>
+          <fieldentry></fieldentry>
+        </qtimetadatafield>
+        <qtimetadatafield>
+          <fieldlabel>assessment_question_identifierref</fieldlabel>
+          <fieldentry>{assessment_question_identifierref}</fieldentry>
+        </qtimetadatafield>
+      </qtimetadata>
+    </itemmetadata>
+    <presentation>
+      <material>
+        <mattext texttype="text/html">{question_text}</mattext>
+      </material>
+      <response_str ident="response1" rcardinality="Single">
+        <render_fib>
+          <response_label ident="answer1" rshuffle="No"/>
+        </render_fib>
+      </response_str>
+    </presentation>
+    <resprocessing>
+      <outcomes>
+        <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+      </outcomes>
+      <respcondition continue="No">
+        <conditionvar>
+          <other/>
+        </conditionvar>
+      </respcondition>
+    </resprocessing>
+</item>

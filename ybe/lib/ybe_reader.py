@@ -10,38 +10,38 @@ import os
 from ruamel import yaml
 
 from ybe.lib.errors import YbeLoadingError, YbeMultipleLoadingErrors
-from ybe.lib.ybe_contents import YbeFile, YbeInfo, MultipleChoice, OpenQuestion, QuestionMetaData, \
+from ybe.lib.ybe_contents import YbeExam, YbeInfo, MultipleChoice, OpenQuestion, QuestionMetaData, \
     GeneralQuestionMetaData, LifecycleQuestionMetaData, ClassificationQuestionMetaData, OpenQuestionOptions, \
     Text, AnalyticsQuestionMetaData, MultipleChoiceAnswer, TextMarkdown, TextHTML, MultipleResponse, \
-    MultipleResponseAnswer, DirectoryContext
+    MultipleResponseAnswer, DirectoryContext, TextOnlyQuestion
 
 
 def read_ybe_file(fname):
-    """Load the data from the provided .ybe file and return an :class:`ybe.lib.ybe_contents.YbeFile` object.
+    """Load the data from the provided .ybe file and return an :class:`ybe.lib.ybe_contents.YbeExam` object.
 
     Args:
         fname (str): the filename of the .ybe file to load
 
     Returns:
-        ybe.lib.ybe_contents.YbeFile: the contents of the .ybe file.
+        ybe.lib.ybe_contents.YbeExam: the contents of the .ybe file.
 
     Raises:
         ybe.lib.errors.YbeLoadingError: if the file could not be loaded due to syntax errors
     """
     with open(fname, "r") as f:
-        ybe_file = read_ybe_string(f.read())
-        ybe_file.resource_context = DirectoryContext(os.path.dirname(os.path.abspath(fname)))
-        return ybe_file
+        ybe_exam = read_ybe_string(f.read())
+        ybe_exam.resource_context = DirectoryContext(os.path.dirname(os.path.abspath(fname)))
+        return ybe_exam
 
 
 def read_ybe_string(ybe_str):
-    """Load the data from the provided Ybe formatted string and return an :class:`ybe.lib.ybe_contents.YbeFile` object.
+    """Load the data from the provided Ybe formatted string and return an :class:`ybe.lib.ybe_contents.YbeExam` object.
 
     Args:
         ybe_str (str): an .ybe formatted string to load
 
     Returns:
-        ybe.lib.ybe_contents.YbeFile: the contents of the .ybe file.
+        ybe.lib.ybe_contents.YbeExam: the contents of the .ybe file.
 
     Raises:
         ybe.lib.errors.YbeLoadingError: if the file could not be loaded due to syntax errors
@@ -49,13 +49,12 @@ def read_ybe_string(ybe_str):
     items = yaml.safe_load(ybe_str)
 
     if not len(items):
-        return YbeFile()
+        return YbeExam()
 
     if 'ybe_version' not in items:
         raise YbeLoadingError('Missing "ybe_version" specifier.')
 
-    return YbeFile(questions=_load_questions(items.get('questions', [])),
-                   info=YbeInfo(**items.get('info', {})))
+    return YbeExam(questions=_load_questions(items.get('questions', [])), info=YbeInfo(**items.get('info', {})))
 
 
 def _load_questions(node):
@@ -108,7 +107,8 @@ def _load_question(node):
     question_types = {
         'multiple_choice': _load_multiple_choice,
         'multiple_response': _load_multiple_response,
-        'open': _load_open_question
+        'open': _load_open_question,
+        'text_only': _load_text_only_question
     }
 
     question_type, question_content = list(node.items())[0]
@@ -120,11 +120,12 @@ def _load_question(node):
     return question_loader(question_content)
 
 
-def _load_question_basics(node):
+def _load_question_basics(node, points_must_be_set=True):
     """Load the basic information of an Ybe question.
 
     Args:
         node (dict): the question information
+        points_must_be_set (boolean): if points must be set as a field for this question.
 
     Returns:
         dict: basic information for a Ybe question.
@@ -142,7 +143,7 @@ def _load_question_basics(node):
         exceptions.append(ex)
 
     try:
-        points = _load_points(node.get('points'), must_be_set=True)
+        points = _load_points(node.get('points'), must_be_set=points_must_be_set)
     except YbeLoadingError as ex:
         exceptions.append(ex)
 
@@ -231,6 +232,28 @@ def _load_open_question(node):
         raise YbeMultipleLoadingErrors(exceptions)
 
     return OpenQuestion(options=options, **basic_info)
+
+
+def _load_text_only_question(node):
+    """Load the information of text only question.
+
+    Args:
+        node (dict): the question information
+
+    Returns:
+        ybe.lib.ybe_contents.TextOnlyQuestion: the loaded question object, parsed from the provided information
+    """
+    exceptions = []
+
+    try:
+        basic_info = _load_question_basics(node, points_must_be_set=False)
+    except YbeLoadingError as ex:
+        exceptions.append(ex)
+
+    if len(exceptions):
+        raise YbeMultipleLoadingErrors(exceptions)
+
+    return TextOnlyQuestion(**basic_info)
 
 
 def _load_multiple_choice_answers(node):

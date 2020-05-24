@@ -9,13 +9,14 @@ import os
 import zipfile
 from lxml import etree
 from bs4 import BeautifulSoup
+from datetime import datetime
 
-from ybe.lib.ybe_contents import YbeFile, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, TextHTML, Text, \
-    MultipleChoiceAnswer, MultipleResponseAnswer, ZipArchiveContext, DirectoryContext
+from ybe.lib.ybe_contents import YbeExam, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, TextHTML, Text, \
+    MultipleChoiceAnswer, MultipleResponseAnswer, ZipArchiveContext, DirectoryContext, TextOnlyQuestion
 
 
 def read_qti_zip(zip_file):
-    """Parse the data from the provided QTI zip file and return an :class:`ybe.lib.ybe_contents.YbeFile` object.
+    """Parse the data from the provided QTI zip file and return an :class:`ybe.lib.ybe_contents.YbeExam` object.
 
     Since there are some differences in the data stored by the QTI format and the Ybe format, round-trip conversion
     may not be lossless.
@@ -24,7 +25,7 @@ def read_qti_zip(zip_file):
         zip_file (str): the filename of the zip file with QTI data to load
 
     Returns:
-        ybe.lib.ybe_contents.YbeFile: an .ybe file with the content from the QTI zip file.
+        ybe.lib.ybe_contents.YbeExam: an .ybe exam loaded with the content from the QTI zip file.
     """
     path = None
     if isinstance(zip_file, str):
@@ -44,13 +45,13 @@ def read_qti_zip(zip_file):
     def load_func(filename):
         return archive.read(filename)
 
-    ybe_file = _load_qti_manifest(load_func)
-    ybe_file.resource_context = ZipArchiveContext(path)
-    return ybe_file
+    ybe_exam = _load_qti_manifest(load_func)
+    ybe_exam.resource_context = ZipArchiveContext(path)
+    return ybe_exam
 
 
 def read_qti_dir(dir_name):
-    """Parse the data from an extracted QTI zip file and return an :class:`ybe.lib.ybe_contents.YbeFile` object.
+    """Parse the data from an extracted QTI zip file and return an :class:`ybe.lib.ybe_contents.YbeExam` object.
 
     Since there are some differences in the data stored by the QTI format and the Ybe format, round-trip conversion
     may not be lossless.
@@ -59,7 +60,7 @@ def read_qti_dir(dir_name):
         dir_name (str): the path to the directory with QTI data to load
 
     Returns:
-        ybe.lib.ybe_contents.YbeFile: an .ybe file with the content from the QTI zip file.
+        ybe.lib.ybe_contents.YbeExam: an .ybe exam loaded with the content from the QTI zip file.
     """
     if not os.path.isdir(dir_name):
         raise ValueError(f'The provided path "{dir_name}" is not a directory.')
@@ -68,9 +69,9 @@ def read_qti_dir(dir_name):
         with open(os.path.join(dir_name, filename), 'rb') as f:
             return f.read()
 
-    ybe_file = _load_qti_manifest(load_func)
-    ybe_file.resource_context = DirectoryContext(os.path.abspath(dir_name))
-    return ybe_file
+    ybe_exam = _load_qti_manifest(load_func)
+    ybe_exam.resource_context = DirectoryContext(os.path.abspath(dir_name))
+    return ybe_exam
 
 
 def _load_qti_manifest(file_load_func):
@@ -81,15 +82,14 @@ def _load_qti_manifest(file_load_func):
             of that file.
 
     Returns:
-        ybe.lib.ybe_contents.YbeFile: loaded from the QTI data.
+        ybe.lib.ybe_contents.YbeExam: loaded from the QTI data.
     """
     ims_manifest = etree.fromstring(file_load_func('imsmanifest.xml'))
     ims_manifest_nsmap = ims_manifest.nsmap
     if None in ims_manifest_nsmap:
         del ims_manifest_nsmap[None]
 
-    title = ims_manifest.xpath('.//imsmd:title', namespaces=ims_manifest_nsmap)[0][0].text
-    datetime = ims_manifest.xpath('.//imsmd:dateTime', namespaces=ims_manifest_nsmap)[0].text
+    ims_datetime = ims_manifest.xpath('.//imsmd:dateTime', namespaces=ims_manifest_nsmap)[0].text
 
     resource_nodes = list(ims_manifest.xpath("//*[local-name() = 'resources']"))[0]
 
@@ -97,7 +97,8 @@ def _load_qti_manifest(file_load_func):
     for resource_node in resource_nodes:
         resource_info = {
             'type': resource_node.get('type'),
-            'identifier': resource_node.get('identifier')
+            'identifier': resource_node.get('identifier'),
+            'href': resource_node.get('href', '')
         }
 
         for item in resource_node:
@@ -108,14 +109,28 @@ def _load_qti_manifest(file_load_func):
 
         resources.append(resource_info)
 
-    questions = []
-    for resource in resources:
-        if resource['type'] == 'imsqti_xmlv1p2':
-            questions_tree = etree.fromstring(file_load_func(resource['file']))
-            questions.extend(_load_qti_questions(questions_tree))
+    questions_resource = next(filter(lambda el: el['type'] == 'imsqti_xmlv1p2', resources))
+    meta_resource = next(filter(lambda el: el['href'].endswith('assessment_meta.xml'), resources))
 
-    return YbeFile(questions=questions,
-                   info=YbeInfo(title=title, creation_date=datetime))
+    meta_data = _load_assessment_meta(etree.fromstring(file_load_func(meta_resource['file'])))
+    questions = _load_qti_questions(etree.fromstring(file_load_func(questions_resource['file'])))
+
+    return YbeExam(questions=questions,
+                   info=YbeInfo(title=meta_data['title'],
+                                date=datetime.strptime(ims_datetime, '%Y-%m-%d').now().date()))
+
+
+def _load_assessment_meta(xml):
+    """Parse the assessment meta file and return the title and description.
+
+    Args:
+        xml (etree): reference to the questions file
+
+    Returns:
+        dict: information parserd from the assessment_meta.xml file
+    """
+    return {'title': xml[0].text,
+            'description': xml[1].text}
 
 
 def _load_qti_questions(xml):
@@ -132,7 +147,8 @@ def _load_qti_questions(xml):
     question_types = {
         'multiple_choice_question': _load_multiple_choice,
         'multiple_answers_question': _load_multiple_response,
-        'essay_question': _load_open_question
+        'essay_question': _load_open_question,
+        'text_only_question': _load_text_only_question
     }
 
     ybe_questions = []
@@ -227,17 +243,31 @@ def _load_multiple_response(question_node):
 
 
 def _load_open_question(question_node):
-    """Load a multiple choice question from the given XML tree.
+    """Load an open question from the given XML tree.
 
     Args:
         question_node (etree): an question item node
 
     Returns:
-         ybe.lib.ybe_contents.MultipleChoice: multiple choice question
+         ybe.lib.ybe_contents.OpenQuestion: loaded question
     """
     meta_data = _qtimetadata_to_dict(question_node[0][0])
     text = _load_text(question_node[1][0])
     return OpenQuestion(id=question_node.get('ident'), text=text, points=float(meta_data['points_possible']))
+
+
+def _load_text_only_question(question_node):
+    """Load a text only question from the given XML tree.
+
+    Args:
+        question_node (etree): an question item node
+
+    Returns:
+         ybe.lib.ybe_contents.TextOnlyQuestion: loaded question
+    """
+    meta_data = _qtimetadata_to_dict(question_node[0][0])
+    text = _load_text(question_node[1][0])
+    return TextOnlyQuestion(id=question_node.get('ident'), text=text, points=float(meta_data['points_possible']))
 
 
 def _load_text(material_node):
@@ -266,6 +296,17 @@ def _load_text(material_node):
                 src = src[len('$IMS-CC-FILEBASE$/'):]
 
             img['src'] = src[:src.find('?')]
+
+        def equations(class_):
+            if not class_:
+                return False
+            return 'equation_image' in class_
+
+        for img in parsed_html.find_all('img', class_=equations):
+            equation = img['data-equation-content']
+            eq_span = parsed_html.new_tag('span', attrs={'class': 'math inline'})
+            eq_span.string = f'\\({equation}\\)'
+            img.replaceWith(eq_span)
 
         html_without_html_and_body_tags = "".join([str(x) for x in parsed_html.body.children])
         text = TextHTML(html_without_html_and_body_tags)

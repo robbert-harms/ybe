@@ -1,0 +1,7 @@
+\subsection*{Question \VAR{question_index} \hspace{1em} \color{gray} (points: \VAR{question.points}) }
+\VAR{question.text.to_latex()}
+\begin{enumerate}[label=\alph*)]
+\BLOCK{ for answer in question.answers }
+    \item \VAR{ answer.text.to_latex() }
+\BLOCK{ endfor }
+\end{enumerate}
