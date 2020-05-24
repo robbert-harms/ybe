@@ -7,6 +7,8 @@ __licence__ = 'GPL v3'
 import io
 import os
 import zipfile
+from pathlib import Path
+
 from lxml import etree
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -28,7 +30,7 @@ def read_qti_zip(zip_file):
         ybe.lib.ybe_contents.YbeExam: an .ybe exam loaded with the content from the QTI zip file.
     """
     path = None
-    if isinstance(zip_file, str):
+    if isinstance(zip_file, (Path, str)):
         path = os.path.abspath(zip_file)
         archive = zipfile.ZipFile(zip_file, 'r')
     elif isinstance(zip_file, (bytes, bytearray)):

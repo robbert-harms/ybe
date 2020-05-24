@@ -47,6 +47,9 @@ def copy_ybe_resources(ybe_exam, dirname):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
+    if ybe_exam.resource_context is None:
+        raise ValueError('Can\'t copy resources because the YbeResourceContext is not set.')
+
     paths = []
     for resource in ybe_exam.get_resources():
         paths.append(ybe_exam.resource_context.copy_resource(resource, dirname))

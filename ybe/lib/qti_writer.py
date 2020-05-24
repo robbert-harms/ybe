@@ -8,7 +8,7 @@ import os
 import shutil
 import tempfile
 import uuid
-import importlib.resources as pkg_resources
+from importlib import resources
 from hashlib import md5
 from xml.sax.saxutils import quoteattr, escape
 from bs4 import BeautifulSoup
@@ -156,7 +156,7 @@ def _write_assessment_meta(ybe_exam, dirname, assessment_identifier, text_format
         'assessment_identifier': assessment_identifier,
         'assignment_group_identifier': uuid.uuid4().hex
     }
-    template = pkg_resources.read_text('ybe.data.qti_template', 'assessment_meta.xml')
+    template = resources.read_text('ybe.data.qti_template', 'assessment_meta.xml')
     assessment_meta = template.format(**template_items)
 
     with open(os.path.join(dirname, assessment_identifier, 'assessment_meta.xml'), 'w') as f:
@@ -177,7 +177,7 @@ def _write_questions_data(ybe_exam, dirname, assessment_identifier, text_formatt
         'assessment_identifier': assessment_identifier,
         'questions': '\n'.join(_get_questions(ybe_exam, text_formatter)),
     }
-    template = pkg_resources.read_text('ybe.data.qti_template', 'assessment.xml')
+    template = resources.read_text('ybe.data.qti_template', 'assessment.xml')
     assessment = template.format(**template_items)
 
     with open(os.path.join(dirname, assessment_identifier, assessment_identifier + '.xml'), 'w') as f:
@@ -238,7 +238,7 @@ def _convert_multiple_choice(question, text_formatter):
         'correct_answer_id': answer_ids[correct_answer_ind],
         'answers': '\n'.join(answers)
     }
-    template = pkg_resources.read_text('ybe.data.qti_template', 'assessment_multiple_choice.xml')
+    template = resources.read_text('ybe.data.qti_template', 'assessment_multiple_choice.xml')
     return template.format(**template_items).strip()
 
 
@@ -283,7 +283,7 @@ def _convert_multiple_response(question, text_formatter):
         'answer_conditions': '\n'.join(answer_conditions),
         'answers': '\n'.join(answers)
     }
-    template = pkg_resources.read_text('ybe.data.qti_template', 'assessment_multiple_response.xml')
+    template = resources.read_text('ybe.data.qti_template', 'assessment_multiple_response.xml')
     return template.format(**template_items).strip()
 
 
@@ -304,7 +304,7 @@ def _convert_open_question(question, text_formatter):
         'assessment_question_identifierref': uuid.uuid4().hex,
         'question_text': _escape_text(text_formatter.format(question.text.to_html()))
     }
-    template = pkg_resources.read_text('ybe.data.qti_template', 'assessment_open_question.xml')
+    template = resources.read_text('ybe.data.qti_template', 'assessment_open_question.xml')
     return template.format(**template_items)
 
 
@@ -324,7 +324,7 @@ def _convert_text_only_question(question, text_formatter):
         'assessment_question_identifierref': uuid.uuid4().hex,
         'question_text': _escape_text(text_formatter.format(question.text.to_html()))
     }
-    template = pkg_resources.read_text('ybe.data.qti_template', 'assessment_text_only_question.xml')
+    template = resources.read_text('ybe.data.qti_template', 'assessment_text_only_question.xml')
     return template.format(**template_items)
 
 
@@ -346,7 +346,7 @@ def _write_qti_manifest(ybe_exam, dirname, assessment_identifier, dependency_ide
         'dependency_identifier': dependency_identifier,
         'additional_resources': '\n'.join(_get_resources(ybe_exam, dirname)),
     }
-    template = pkg_resources.read_text('ybe.data.qti_template', 'imsmanifest.xml')
+    template = resources.read_text('ybe.data.qti_template', 'imsmanifest.xml')
     manifest_str = template.format(**template_items)
 
     with open(os.path.join(dirname, 'imsmanifest.xml'), 'w') as f:

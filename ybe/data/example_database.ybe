@@ -1,4 +1,4 @@
-ybe_version: 0.1.0
+ybe_version: 0.2.0
 
 info:
     title: Example questions
@@ -54,18 +54,15 @@ questions:
     id: <some_random_string>
     points: 1
     text: |-
-        Due to the "|" operator, all newlines in this text will be kept intact.
+        Due to the "|" modifier, all newlines in this text will be kept intact.
         That is, this line will appear on a new line in the example file.
-        The "-" operator at the end (i.e "|-") indicates we want to remove any pending new line at the end.
 
-        Furthermore, this question adds a lot of meta data to the question.
-
-        Question: Which basic variants of line folding are there in Ybe?
+        This is not a feature of Ybe perse, but rather a feature of YAML.
     answers:
         - answer:
-            text: 0 variants
+            text: wrong answer
         - answer:
-            text: '1 variant: with or without the "|" operator'
+            text: correct answer
             correct: true
     meta_data:
         general:
