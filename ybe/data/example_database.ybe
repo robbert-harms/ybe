@@ -1,4 +1,4 @@
-ybe_version: 0.2.0
+ybe_version: 0.2.1
 
 info:
     title: Example questions
@@ -29,7 +29,6 @@ questions:
     id: '#2003_2'
     points: 3.14
     text: Example open question.
-
 
 - multiple_response:
     id: 2015_q1

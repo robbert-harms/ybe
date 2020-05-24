@@ -2,6 +2,11 @@
 Changelog
 *********
 
+v0.2.1 (2020-05-24)
+===================
+- Updates to the documentation.
+
+
 v0.2.0 (2020-05-24)
 ===================
 First github release.
