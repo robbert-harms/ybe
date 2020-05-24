@@ -69,8 +69,8 @@ info_dict = dict(
     install_requires=requirements,
     license="GPL v3",
     zip_safe=False,
-    keywords="ybe, exams, yaml, markdown, QTI, IMS Question & Test Interoperability, "
-             "quiz, test, exam, assessment, LaTeX, plain text",
+    keywords="exams-management-system, yaml, markdown, QTI, exams, IMS Question & Test Interoperability, "
+             "quiz, test, exam, assessment, LaTeX, plain-text",
     classifiers=[
         'Environment :: Console',
         'Environment :: X11 Applications :: Qt',
