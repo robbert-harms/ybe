@@ -29,6 +29,15 @@ mock_as_decorator = ['pyqtSlot']
 mock_modules = ['pyopencl', 'PyQt5', 'matplotlib', 'mpl_toolkits']
 
 
+class mock_qtcore(MagicMock):
+    @staticmethod
+    def qVersion():
+        return '0.0.0.'
+
+    def qRegisterResourceData(self, *args, **kwargs):
+        pass
+
+
 def mock_decorator(*args, **kwargs):
     """Mocked decorator, needed in the case we need to mock a decorator"""
     def _called_decorator(dec_func):
@@ -37,13 +46,6 @@ def mock_decorator(*args, **kwargs):
             return dec_func()
         return _decorator
     return _called_decorator
-
-
-class MockClass(object):
-    """Mocked class needed in the case we need to mock a class type"""
-    @classmethod
-    def __getattr__(cls, name):
-        return MockModule()
 
 
 class MockNamedComponent(MagicMock):
@@ -57,7 +59,13 @@ class MockModule(MagicMock):
     """The base mocking class. This mimics a module."""
     @classmethod
     def __getattr__(cls, name):
+        if name == 'QtCore':
+            return mock_qtcore
         if name in mock_as_class:
+            class MockClass(MagicMock):
+                @classmethod
+                def __getattr__(cls, name):
+                    return MockModule()
             return MockClass
         if name in mock_as_decorator:
             return mock_decorator
@@ -79,7 +87,7 @@ builtins.__import__ = import_mock
 def get_cli_doc_items():
     items = []
 
-    for file in sorted(glob.glob('../mdt/cli_scripts/*.py')):
+    for file in sorted(glob.glob('../ybe/cli_scripts/*.py')):
         module_name = os.path.splitext(os.path.basename(file))[0]
         command_name = module_name.replace('_', '-')
 
@@ -100,13 +108,14 @@ def get_cli_doc_items():
                 {command_name_highlight}
 
                 .. argparse::
-                   :ref: mdt.cli_scripts.{module_name}.get_doc_arg_parser
+                   :ref: ybe.cli_scripts.{module_name}.get_doc_arg_parser
                    :prog: {command_name}
             """).format(command_name=command_name, command_name_highlight='='*len(command_name),
                         module_name=module_name)
 
             items.append(item)
     return items
+
 
 with open('auto_gen_cli_index.rst', 'w') as f:
     for item in get_cli_doc_items():
@@ -133,7 +142,7 @@ import ybe
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode', 'sphinx.ext.napoleon', 'sphinx.ext.intersphinx',
-              'sphinx.ext.mathjax', 'sphinxarg.ext']
+              'sphinx.ext.mathjax', 'sphinxcontrib.bibtex', 'sphinxarg.ext']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -173,7 +182,7 @@ release = ybe.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', '_getting_started', '_dynamic_modules', 'auto_gen_cli_index.rst']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -217,11 +226,15 @@ html_theme = 'alabaster'
 # documentation.
 html_theme_options = {
     'show_powered_by': False,
-    'description': "Toolbox",
+    'description': "Yaml Based Exams",
     'logo_name': True,
-    'sidebar_collapse': False,
+    'sidebar_collapse': True,
     'fixed_sidebar': False,
-    'extra_nav_links': {'Module index': 'py-modindex.html'}
+    'extra_nav_links': {
+	'CLI Index': 'cli_index.html',
+	'Module index': 'py-modindex.html',
+	'Changelog': 'changelog.html'
+	}
 }
 
 
