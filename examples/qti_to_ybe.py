@@ -6,11 +6,10 @@ __licence__ = 'GPL v3'
 
 import importlib.resources as pkg_resources
 from ybe import read_qti_zip, write_ybe_file
+from ybe.lib.utils import copy_ybe_resources
 
 
 # read the provided example QTI
-from ybe.lib.utils import copy_ybe_resources
-
 with pkg_resources.path('ybe.data', 'canvas_export.zip') as path:
     ybe_exam = read_qti_zip(path)
 

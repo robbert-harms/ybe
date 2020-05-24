@@ -10,11 +10,6 @@ info:
         - Sanne Schoenmakers
 
 questions:
-- open:
-    id: '#2003_2'
-    points: 3.14
-    text: Example open question.
-
 - multiple_choice:
     id: 2013_q2
     points: 1
@@ -29,6 +24,12 @@ questions:
         - answer:
             text: Fourth answer
             correct: true
+
+- open:
+    id: '#2003_2'
+    points: 3.14
+    text: Example open question.
+
 
 - multiple_response:
     id: 2015_q1
@@ -102,8 +103,6 @@ questions:
         This is a famous formula inline: $E=mc^2$ and this is a basic displayed formula:
 
         $$ a^2 = b^2 + c^2 $$
-
-        And it all costs $0.0!
 
         Next to that, here is an image from Escher:\
         ![Escher](escher.jpg){ width=100% }

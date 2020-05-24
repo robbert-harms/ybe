@@ -19,3 +19,4 @@ from ybe.lib.ybe_reader import read_ybe_string, read_ybe_file
 from ybe.lib.qti_reader import read_qti_dir, read_qti_zip
 from ybe.lib.qti_writer import write_qti_dir, write_qti_zip
 from ybe.lib.utils import markdown_to_latex, html_to_latex
+from ybe.lib.latex_writer import write_latex_file

@@ -5,8 +5,7 @@ __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
 
-from ybe import read_ybe_file
-from ybe.lib.latex_writer import write_latex_file
+from ybe import read_ybe_file, write_latex_file
 from importlib import resources
 from ybe.lib.utils import copy_ybe_resources
 
