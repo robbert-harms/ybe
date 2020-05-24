@@ -200,7 +200,7 @@ For example, finding all questions that yield exactly one point can be done like
 
 Importing from QTI
 ==================
-If you already have questions in Canvas (https://canvas.instructure.com) or other software packages, you could export
+If you already have questions in `Canvas <https://canvas.instructure.com>`_ or other software packages, you could export
 these to QTI format and convert easily into an .ybe file:
 
 .. code-block:: python
