@@ -269,27 +269,12 @@ class YbeConversionVisitor(YbeNodeVisitor):
     def _visit_GeneralQuestionMetaData(self, node):
         data = node.__dict__
         data['keywords'] = self._yaml_inline_list(data['keywords'])
-
         if self.minimal:
             return {k: v for k, v in data.items() if v != node.get_default_value(k)}
         return data
 
     def _visit_AnalyticsQuestionMetaData(self, node):
         return node.analytics
-
-    def _visit_ClassificationQuestionMetaData(self, node):
-        data = node.__dict__
-        data['related_concepts'] = self._yaml_inline_list(data['related_concepts'])
-
-        if self.minimal:
-            return {k: v for k, v in data.items() if v != node.get_default_value(k)}
-        return data
-
-    def _visit_LifecycleQuestionMetaData(self, node):
-        data = node.__dict__
-        if self.minimal:
-            return {k: v for k, v in data.items() if v != node.get_default_value(k)}
-        return node.__dict__
 
     @staticmethod
     def _yaml_text_block(text):

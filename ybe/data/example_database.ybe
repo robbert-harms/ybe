@@ -1,4 +1,4 @@
-ybe_version: 0.2.1
+ybe_version: 0.2.2
 
 info:
     title: Example questions
@@ -69,13 +69,14 @@ questions:
             description: Some description for yourself
             keywords: [alpha, beta]
             language: en
-        lifecycle:
-            author: John Doe
-        classification:
-            skill_level: Knowledge
-            related_concepts: [Ybe]
+            creation_date: 2020-05-29
+            authors:
+                - John Doe
             module: Science
-            chapter: 1
+            chapters:
+                - Some book, ed. 2, ch. 1
+                - Some book, ed. 3, ch. 2
+            skill_type: Knowledge
             difficulty: 1
         analytics:
             - exam:
@@ -112,15 +113,15 @@ questions:
     meta_data:
         general:
             description: Some description for yourself
-            keywords: [alpha, beta]
+            keywords: [alpha, epsilon]
             language: en
-        lifecycle:
-            author: Some Author
-        classification:
-            skill_level: Analysis
-            related_concepts: [Ybe, science]
+            creation_date: 2020-05-29
+            authors:
+                - Jane Doe
             module: Science
-            chapter: 3
+            chapters:
+                - Fundaments of somethings, ed. 4, ch. 15
+            skill_type: Analysis
             difficulty: 5
         analytics:
             - exam:

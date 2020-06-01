@@ -6,12 +6,13 @@ __licence__ = 'GPL v3'
 
 import collections
 import os
+from copy import copy
 
 from ruamel import yaml
 
 from ybe.lib.errors import YbeLoadingError, YbeMultipleLoadingErrors
 from ybe.lib.ybe_contents import YbeExam, YbeInfo, MultipleChoice, OpenQuestion, QuestionMetaData, \
-    GeneralQuestionMetaData, LifecycleQuestionMetaData, ClassificationQuestionMetaData, OpenQuestionOptions, \
+    GeneralQuestionMetaData, OpenQuestionOptions, \
     Text, AnalyticsQuestionMetaData, MultipleChoiceAnswer, TextMarkdown, TextHTML, MultipleResponse, \
     MultipleResponseAnswer, DirectoryContext, TextOnlyQuestion
 
@@ -382,20 +383,64 @@ def _load_question_meta_data(node):
     Returns:
         ybe.lib.ybe_contents.QuestionMetaData: the meta data as an object.
     """
-    keywords = node.get('general', {}).get('keywords')
-    if not (isinstance(keywords, list) or keywords is None):
-        raise YbeLoadingError(f'The value for ``meta_data.general.keywords`` should be a list, '
-                              f'"{keywords}" was given.')
+    exceptions = []
 
-    return QuestionMetaData(
-        general=GeneralQuestionMetaData(**node.get('general', {})),
-        lifecycle=LifecycleQuestionMetaData(**node.get('lifecycle', {})),
-        classification=_load_meta_data_classification(node.get('classification', {})),
-        analytics=_load_meta_data_analytics(node.get('analytics', []))
-    )
+    try:
+        general = _load_question_meta_data_general(node.get('general', {}))
+    except YbeLoadingError as ex:
+        exceptions.append(ex)
+
+    try:
+        analytics = _load_question_meta_data_analytics(node.get('analytics', []))
+    except YbeLoadingError as ex:
+        exceptions.append(ex)
+
+    if len(exceptions):
+        raise YbeMultipleLoadingErrors(exceptions)
+
+    return QuestionMetaData(general=general, analytics=analytics)
 
 
-def _load_meta_data_analytics(node):
+def _load_question_meta_data_general(node):
+    """Load the analytics information of a question.
+
+    Args:
+        node (dict): the content of the meta data general information node
+
+    Returns:
+        ybe.lib.ybe_contents.GeneralQuestionMetaData: the question's general meta data
+    """
+    data = copy(node)
+
+    if data.get('keywords') is not None and not isinstance(data.get('keywords'), (list, tuple)):
+        data['keywords'] = [data['keywords']]
+
+    if data.get('authors') is not None and not isinstance(data.get('authors'), (list, tuple)):
+        data['authors'] = [data['authors']]
+
+    if data.get('chapters') is not None and not isinstance(data.get('chapters'), (list, tuple)):
+        data['chapters'] = [data['chapters']]
+
+    exceptions = []
+
+    skill_type = data.get('skill_type')
+    skill_types = GeneralQuestionMetaData.available_skill_types
+    if skill_type is not None and skill_type not in skill_types:
+        exceptions.append(YbeLoadingError(f'The value for ``meta_data.general.skill_type`` should be one of '
+                                          f'"{skill_types}", while "{skill_type}" was given.'))
+
+    difficulty = node.get('difficulty')
+    if (not isinstance(difficulty, int) or difficulty not in range(0, 11)) and difficulty is not None:
+        exceptions.append(YbeLoadingError(f'The value for ``meta_data.general.difficulty`` should be an '
+                                          f'integer between [1-10], "{difficulty}" was given.'))
+
+    if len(exceptions):
+        raise YbeMultipleLoadingErrors(exceptions)
+
+    return GeneralQuestionMetaData(**data)
+
+
+def _load_question_meta_data_analytics(node):
     """Load the analytics information of a question.
 
     Args:
@@ -405,51 +450,3 @@ def _load_meta_data_analytics(node):
         ybe.lib.ybe_contents.AnalyticsQuestionMetaData: the question analytics
     """
     return AnalyticsQuestionMetaData(node)
-
-
-def _load_meta_data_classification(node):
-    """Load the classification meta data of a question.
-
-    Args:
-        node (dict): the content of the classification meta data node
-
-    Returns:
-        ybe.lib.ybe_contents.ClassificationQuestionMetaData: the question classification meta data
-    """
-    if not len(node):
-        return ClassificationQuestionMetaData()
-
-    exceptions = []
-
-    related_concepts = node.get('related_concepts')
-    if not (isinstance(related_concepts, list) or related_concepts is None):
-        exceptions.append(YbeLoadingError(f'The value for ``meta_data.classification.related_concepts`` '
-                                          f'should be a list, "{related_concepts}" given.'))
-
-    skill_level = node.get('skill_level')
-    skill_levels = ClassificationQuestionMetaData.available_skill_levels
-    if skill_level not in skill_levels and skill_level is not None:
-        exceptions.append(YbeLoadingError(f'The value for ``meta_data.classification.skill_level`` should be one of '
-                                          f'"{skill_levels}", while "{skill_level}" was given.'))
-
-    chapter = node.get('chapter')
-    if not isinstance(chapter, int) and chapter is not None:
-        exceptions.append(YbeLoadingError(f'The value for ``meta_data.classification.chapter`` should be an integer, '
-                                          f'"{chapter}" was given.'))
-
-    difficulty = node.get('difficulty')
-    if (not isinstance(difficulty, int) or difficulty not in range(0, 11)) and difficulty is not None:
-        exceptions.append(YbeLoadingError(f'The value for ``meta_data.classification.difficulty`` should be an '
-                                          f'integer between [1-10], "{difficulty}" was given.'))
-
-    if len(exceptions):
-        raise YbeMultipleLoadingErrors(exceptions)
-
-    return ClassificationQuestionMetaData(
-        skill_level=skill_level,
-        related_concepts=related_concepts,
-        module=node.get('module'),
-        chapter=chapter,
-        difficulty=difficulty
-    )
-

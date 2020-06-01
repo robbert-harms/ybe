@@ -111,11 +111,14 @@ def _load_qti_manifest(file_load_func):
 
         resources.append(resource_info)
 
-    questions_resource = next(filter(lambda el: el['type'] == 'imsqti_xmlv1p2', resources))
-    meta_resource = next(filter(lambda el: el['href'].endswith('assessment_meta.xml'), resources))
+    questions_resources = list(filter(lambda el: el['type'] == 'imsqti_xmlv1p2', resources))
+    meta_resources = list(filter(lambda el: el['href'].endswith('assessment_meta.xml'), resources))
 
-    meta_data = _load_assessment_meta(etree.fromstring(file_load_func(meta_resource['file'])))
-    questions = _load_qti_questions(etree.fromstring(file_load_func(questions_resource['file'])))
+    meta_data = _load_assessment_meta(etree.fromstring(file_load_func(meta_resources[0]['file'])))
+
+    questions = []
+    for questions_resource in questions_resources:
+        questions.extend(_load_qti_questions(etree.fromstring(file_load_func(questions_resource['file']))))
 
     return YbeExam(questions=questions,
                    info=YbeInfo(title=meta_data['title'],
@@ -144,7 +147,14 @@ def _load_qti_questions(xml):
     Returns:
         List [ybe.lib.ybe_contents.Question]: the questions from the provided XML diagram
     """
-    question_nodes = list(xml[0][1])
+    section = xml[0][1]
+    previous = section
+    while section.tag.endswith('section') and len(list(section)):
+        previous = section
+        section = section[0]
+
+    section = previous
+    question_nodes = [el for el in list(section) if el.tag.endswith('item')]
 
     question_types = {
         'multiple_choice_question': _load_multiple_choice,

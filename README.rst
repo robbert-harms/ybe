@@ -146,9 +146,9 @@ An example of an ybe file with all supported questions and some file meta data i
 Adding meta-data
 ================
 In addition, Ybe supports adding meta-data to your questions.
-This allows you to store a description of the question, the lifecycle (like, who made this question),
-a classification of for example the skill level and question analytics where you can store
-statistics of past usage of this question. This can all be stored as follows:
+A full example of all the available meta-data options is given below.
+Not all the options need to be used, one can leave one or more out if not needed.
+A full example:
 
 .. code-block:: yaml
 
@@ -159,16 +159,17 @@ statistics of past usage of this question. This can all be stored as follows:
         text: Example with meta data
         meta_data:
             general:
-                description: Some description for yourself
+                description: Some description
                 keywords: [alpha, beta]
                 language: en
-            lifecycle:
-                author: The Author
-            classification:
-                skill_level: Knowledge
-                related_concepts: [Ybe]
+                creation_date: 2020-05-29
+                authors:
+                    - John Doe
                 module: Science
-                chapter: 1
+                chapters:
+                    - Some book, ed. 2, ch. 1
+                    - Some book, ed. 3, ch. 2
+                skill_type: Knowledge
                 difficulty: 1
             analytics:
                 - exam:

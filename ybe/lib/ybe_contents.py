@@ -257,41 +257,35 @@ class MultipleResponseAnswer(SimpleYbeNode):
 @dataclass
 class QuestionMetaData(SimpleYbeNode):
     general: GeneralQuestionMetaData = field(default_factory=lambda: GeneralQuestionMetaData())
-    lifecycle: LifecycleQuestionMetaData = field(default_factory=lambda: LifecycleQuestionMetaData())
-    classification: ClassificationQuestionMetaData = field(default_factory=lambda: ClassificationQuestionMetaData())
     analytics: AnalyticsQuestionMetaData = field(default_factory=lambda: AnalyticsQuestionMetaData())
 
 
 @dataclass
 class GeneralQuestionMetaData(SimpleYbeNode):
+    """General meta-data of a question.
+
+    Args:
+        description (str): free text area for info about this question
+        keywords (List[str]): list of (free entry) keywords
+        language (str): the language of this question
+        creation_date (date): date of when this question was added
+        authors (List[str]): list of authors who made this question
+        module (str): the book or module this question is about
+        chapters (List[str]): the chapters this question refers to
+        skill_type (str): one of {Knowledge, Comprehension, Application, Analysis, Synthesis, Evaluation}
+        difficulty (int): a difficulty rating, typically between 1 to 10 with 10 being the most difficult questions.
+    """
     description: str = None
     keywords: List[str] = field(default_factory=list)
     language: str = None
-
-
-@dataclass
-class LifecycleQuestionMetaData(SimpleYbeNode):
-    author: str = None
-
-
-@dataclass
-class ClassificationQuestionMetaData(SimpleYbeNode):
-    """The skill level and difficulty of the question.
-
-    Args:
-        skill_level (str): one of {Knowledge, Comprehension, Application, Analysis, Synthesis, Evaluation}
-        related_concepts (List[str]): list of related concepts / topics
-        module (str): the book or module this question is about
-        chapter (int): the chapter the work is about
-        difficulty (int): the difficulty level from 1 to 10, with 10 being the hardest
-    """
-    skill_level: str = None
-    related_concepts: List[str] = field(default_factory=list)
+    creation_date: date = None
+    authors: List[str] = field(default_factory=list)
     module: str = None
-    chapter: int = None
+    chapters: List[str] = field(default_factory=list)
+    skill_type: str = None
     difficulty: int = None
 
-    available_skill_levels = ['Knowledge', 'Comprehension', 'Application', 'Analysis', 'Synthesis', 'Evaluation']
+    available_skill_types = ['Knowledge', 'Comprehension', 'Application', 'Analysis', 'Synthesis', 'Evaluation']
 
 
 @dataclass
