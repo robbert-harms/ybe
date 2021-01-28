@@ -6,13 +6,14 @@ __licence__ = 'GPL v3'
 
 import os
 from dataclasses import fields, is_dataclass, dataclass
-from typing import get_type_hints, get_args, get_origin, Any, List
+from typing import get_type_hints, get_args, get_origin, Any
 
-from ruamel import yaml
+from ruamel.yaml import YAML
 
+from ybe.lib.data_types import TextHTML, TextMarkdown, TextData, TextNoMarkup
 from ybe.lib.errors import YbeLoadingError
-from ybe.lib.ybe_nodes import YbeExam, MultipleChoice, OpenQuestion, Text, MultipleChoiceAnswer, TextMarkdown, \
-    TextHTML, MultipleResponse, DirectoryContext, TextOnlyQuestion, TextNode
+from ybe.lib.ybe_nodes import YbeExam, MultipleChoice, OpenQuestion, MultipleChoiceAnswer, \
+    MultipleResponse, DirectoryContext, TextOnlyQuestion, MultipleResponseAnswer
 
 
 def read_ybe_file(fname):
@@ -45,7 +46,10 @@ def read_ybe_string(ybe_str):
     Raises:
         ybe.lib.errors.YbeLoadingError: if the file could not be loaded due to syntax errors
     """
-    data = yaml.safe_load(ybe_str)
+    yaml = YAML(typ='safe')
+    yaml.register_class(TextHTML)
+    yaml.register_class(TextMarkdown)
+    data = yaml.load(ybe_str)
 
     if not len(data):
         return YbeExam()
@@ -53,7 +57,8 @@ def read_ybe_string(ybe_str):
     if 'ybe_version' not in data:
         raise YbeLoadingError('Missing "ybe_version" specifier.')
 
-    return YbeLoader().load(YbeExam, data)
+    result = YbeLoader().load(YbeExam, data)
+    return result
 
 
 class YbeLoader:
@@ -63,13 +68,6 @@ class YbeLoader:
 
         This interprets the node to see which fields it requires, and then loads those fields from the provided data.
         """
-        self._field_subtypes = {
-            TextNode: {
-                'text': Text,
-                'text_markdown': TextMarkdown,
-                'text_html': TextHTML
-            }
-        }
 
     def load(self, node, data):
         """Visit a node and try to load the provided data.
@@ -103,15 +101,8 @@ class YbeLoader:
         field_type = get_type_hints(parent_node)[field_name]
 
         if is_dataclass(field_type):
-            if field_type in self._field_subtypes:
-                subtypes = self._field_subtypes[field_type]
-                for sub_field_name, subtype in subtypes.items():
-                    if sub_field_name in data:
-                        return ResultValue(self.load(subtype, data[sub_field_name]))
-
             if field_name not in data:
                 return ResultMissing()
-
             return ResultValue(self.load(field_type, data[field_name]))
 
         if not isinstance(data, (list, dict)):
@@ -127,6 +118,11 @@ class YbeLoader:
             if is_dataclass(list_root_node):
                 return ResultValue([self.load(list_root_node, el) for el in value])
         return ResultValue(value)
+
+    def _load_node_Text(self, node, data):
+        if isinstance(data, TextData):
+            return node(data)
+        return node(TextNoMarkup(data))
 
     def _load_node_AnalyticsQuestionMetaData(self, node, data):
         return node(data)
@@ -153,7 +149,7 @@ class YbeLoader:
 
     def _load_field_MultipleResponse_answers(self, parent_node, field, data):
         if 'answers' in data:
-            return ResultValue([self.load(MultipleChoiceAnswer, el['answer']) for el in data['answers']])
+            return ResultValue([self.load(MultipleResponseAnswer, el['answer']) for el in data['answers']])
         return ResultMissing()
 
 
@@ -161,7 +157,6 @@ class YbeLoader:
 class ParseResult:
     """The parse result of parsing a field or node."""
     value: Any = None
-    warnings: List[str] = None
 
 
 @dataclass

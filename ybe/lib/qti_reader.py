@@ -13,8 +13,9 @@ from lxml import etree
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-from ybe.lib.ybe_nodes import YbeExam, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, TextHTML, Text, \
-    MultipleChoiceAnswer, MultipleResponseAnswer, ZipArchiveContext, DirectoryContext, TextOnlyQuestion
+from ybe.lib.data_types import TextHTML, TextNoMarkup
+from ybe.lib.ybe_nodes import YbeExam, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, Text, \
+    MultipleChoiceAnswer, MultipleResponseAnswer, ZipArchiveContext, DirectoryContext, TextOnlyQuestion, Feedback
 
 
 def read_qti_zip(zip_file):
@@ -116,7 +117,6 @@ def _load_qti_manifest(file_load_func):
 
         resources.append(resource_info)
 
-
     meta_resources = list(filter(lambda el: el['href'].endswith('assessment_meta.xml'), resources))
     if meta_resources:
         meta_data = _load_assessment_meta(etree.fromstring(file_load_func(meta_resources[0]['file'])))
@@ -143,6 +143,11 @@ def _load_qti_manifest(file_load_func):
     return YbeExam(questions=questions, info=YbeInfo(title=title, date=date))
 
 
+def _get_nodes_ending_with(node, postfix):
+    """Get all the nodes ending with the provided postfix."""
+    return [child for child in node if child.tag.endswith(postfix)]
+
+
 def _load_assessment_meta(xml):
     """Parse the assessment meta file and return the title and description.
 
@@ -152,8 +157,8 @@ def _load_assessment_meta(xml):
     Returns:
         dict: information parserd from the assessment_meta.xml file
     """
-    return {'title': xml[0].text,
-            'description': xml[1].text}
+    return {'title': Text(TextNoMarkup(xml[0].text)),
+            'description': Text(TextNoMarkup(xml[1].text))}
 
 
 def _load_qti_question_resource(xml):
@@ -165,14 +170,11 @@ def _load_qti_question_resource(xml):
     Returns:
         List [ybe.lib.ybe_contents.Question]: the questions from the provided XML diagram
     """
-    section = xml[0][1]
-    previous = section
-    while section.tag.endswith('section') and len(list(section)):
-        previous = section
-        section = section[0]
+    sections = _get_section_nodes(xml)
 
-    section = previous
-    question_nodes = [el for el in list(section) if el.tag.endswith('item')]
+    question_nodes = []
+    for section in sections:
+        question_nodes.extend(_get_nodes_ending_with(section, 'item'))
 
     question_types = {
         'multiple_choice_question': _load_multiple_choice,
@@ -189,6 +191,34 @@ def _load_qti_question_resource(xml):
             ybe_questions.append(question_types[meta_data['question_type']](question_node))
 
     return ybe_questions
+
+
+def _get_section_nodes(main_node):
+    """Get, from the main node, all the question nodes.
+
+    Args:
+        main_node (etree): the main node is typically structured as ::
+
+            <questestinterop>
+                <assessment ident="" title="">
+                    <qtimetadata>...</qtimetadata>
+                    <section ident="root_section">...</section>
+                    ...
+                    <section ident="root_section">...</section>
+                </assessment>
+            <questestinterop>
+
+            from this, we load all the section nodes.
+
+    Returns:
+        List[etree]: List of section nodes
+    """
+    sections = []
+    assessment_node = main_node[0]
+    for child in assessment_node:
+        if child.tag.endswith('section') and len(list(child)):
+            sections.append(child)
+    return sections
 
 
 def _load_qti_question_item(xml):
@@ -232,6 +262,7 @@ def _load_multiple_choice(question_node):
          ybe.lib.ybe_contents.MultipleChoice: multiple choice question
     """
     meta_data = _qtimetadata_to_dict(question_node[0][0])
+    feedbacks = _load_feedbacks(_get_nodes_ending_with(question_node, 'itemfeedback'))
     text = _load_text(question_node[1][0])
 
     correct_answer = None
@@ -243,11 +274,16 @@ def _load_multiple_choice(question_node):
 
     answers = []
     for response_label in question_node[1][1][0]:
+        response_id = response_label.get('ident')
         answers.append(MultipleChoiceAnswer(text=_load_text(response_label[0]),
-                                            correct=(response_label.get('ident') == correct_answer)))
+                                            correct=(response_id == correct_answer),
+                                            hint=feedbacks.get(f'{response_id}_fb')))
 
     return MultipleChoice(id=question_node.get('ident'), text=text, answers=answers,
-                          points=float(meta_data['points_possible']))
+                          points=float(meta_data['points_possible']),
+                          feedback=Feedback(general=feedbacks.get('general_fb'),
+                                            on_correct=feedbacks.get('correct_fb'),
+                                            on_incorrect=feedbacks.get('general_incorrect_fb')))
 
 
 def _load_multiple_response(question_node):
@@ -260,6 +296,7 @@ def _load_multiple_response(question_node):
         ybe.lib.ybe_contents.MultipleChoice: multiple choice question
     """
     meta_data = _qtimetadata_to_dict(question_node[0][0])
+    feedbacks = _load_feedbacks(_get_nodes_ending_with(question_node, 'itemfeedback'))
     text = _load_text(question_node[1][0])
 
     correct_answers = []
@@ -270,11 +307,16 @@ def _load_multiple_response(question_node):
 
     answers = []
     for response_label in question_node[1][1][0]:
+        response_id = response_label.get('ident')
         answers.append(MultipleResponseAnswer(text=_load_text(response_label[0]),
-                       correct=(response_label.get('ident') in correct_answers)))
+                                              correct=(response_id in correct_answers),
+                                              hint=feedbacks.get(f'{response_id}_fb')))
 
     return MultipleResponse(id=question_node.get('ident'), text=text, answers=answers,
-                            points=float(meta_data['points_possible']))
+                            points=float(meta_data['points_possible']),
+                            feedback=Feedback(general=feedbacks.get('general_fb'),
+                                              on_correct=feedbacks.get('correct_fb'),
+                                              on_incorrect=feedbacks.get('general_incorrect_fb')))
 
 
 def _load_open_question(question_node):
@@ -287,8 +329,38 @@ def _load_open_question(question_node):
          ybe.lib.ybe_contents.OpenQuestion: loaded question
     """
     meta_data = _qtimetadata_to_dict(question_node[0][0])
+    feedbacks = _load_feedbacks(_get_nodes_ending_with(question_node, 'itemfeedback'))
     text = _load_text(question_node[1][0])
-    return OpenQuestion(id=question_node.get('ident'), text=text, points=float(meta_data['points_possible']))
+
+    return OpenQuestion(id=question_node.get('ident'),
+                        text=text,
+                        points=float(meta_data['points_possible']),
+                        feedback=Feedback(general=feedbacks.get('general_fb')))
+
+
+def _load_feedbacks(feedback_nodes):
+    """Load feedback from a list of feedback nodes.
+
+    Args:
+        feedback_nodes (List[etree]): list of feedback nodes. These are structured as::
+
+            <itemfeedback ident="...">
+                <flow_mat>
+                <material>
+                    <mattext texttype="text/html">...</mattext>
+                </material>
+                </flow_mat>
+            </itemfeedback>
+
+    Returns:
+        dict[str, TextNode]: dictionary mapping the ident keys to text nodes
+    """
+    feedbacks = {}
+    for node in feedback_nodes:
+        id = node.get('ident')
+        text = _load_text(node[0][0])
+        feedbacks[id] = text
+    return feedbacks
 
 
 def _load_text_only_question(question_node):
@@ -309,13 +381,16 @@ def _load_text(material_node):
     """Load the text from a node marked ``material``.
 
     Args:
-        material_node (etree): an question item node
+        material_node (etree): a node marked as "material"
 
     Returns:
          ybe.lib.ybe_contents.TextNode: a text node subclass
     """
     mattext = material_node[0]
     texttype = mattext.get('texttype')
+
+    if mattext.text is None:
+        return None
 
     if texttype == 'text/html':
         parsed_html = BeautifulSoup(mattext.text, 'lxml')
@@ -344,10 +419,10 @@ def _load_text(material_node):
             img.replaceWith(eq_span)
 
         html_without_html_and_body_tags = "".join([str(x) for x in parsed_html.body.children])
-        text = TextHTML(html_without_html_and_body_tags)
-    elif texttype == 'text/plain':
-        text = Text(mattext.text)
-    else:
-        raise ValueError('No suitable text type found.')
+        return Text(TextHTML(html_without_html_and_body_tags))
 
-    return text
+    if texttype == 'text/plain':
+        return Text(TextNoMarkup(mattext.text))
+
+    raise ValueError('No suitable text type found.')
+

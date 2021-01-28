@@ -11,12 +11,11 @@ import shutil
 import zipfile
 from datetime import date
 
-import pypandoc
-from bs4 import BeautifulSoup
 from dataclasses import dataclass, field, fields
 from typing import List, Union
 
-from ybe.lib.utils import get_default_value, markdown_to_latex, html_to_latex
+from ybe.lib.data_types import TextData, TextNoMarkup
+from ybe.lib.utils import get_default_value
 
 
 @dataclass
@@ -186,8 +185,8 @@ class YbeExam(SimpleYbeNode):
 @dataclass
 class YbeInfo(SimpleYbeNode):
     """The header information in a Ybe file."""
-    title: str = None
-    description: str = None
+    title: Text = None
+    description: Text = None
     document_version: str = None
     date: date = None
     authors: List[str] = field(default_factory=list)
@@ -197,7 +196,7 @@ class YbeInfo(SimpleYbeNode):
 class Question(YbeExamElement):
     id: str = ''
     points: Union[float, int] = 0
-    text: TextNode = field(default_factory=lambda: Text())
+    text: Text = field(default_factory=lambda: Text())
     feedback: Feedback = field(default_factory=lambda: Feedback())
     meta_data: QuestionMetaData = field(default_factory=lambda: QuestionMetaData())
 
@@ -224,16 +223,16 @@ class TextOnlyQuestion(Question):
 
 @dataclass
 class MultipleChoiceAnswer(SimpleYbeNode):
-    text: TextNode = field(default_factory=lambda: Text())
+    text: Text = field(default_factory=lambda: Text())
     correct: bool = False
-    hint: str = None
+    hint: Text = None
 
 
 @dataclass
 class MultipleResponseAnswer(SimpleYbeNode):
-    text: TextNode = field(default_factory=lambda: Text())
+    text: Text = field(default_factory=lambda: Text())
     correct: bool = False
-    hint: str = None
+    hint: Text = None
 
 
 @dataclass
@@ -276,8 +275,8 @@ class AnalyticsQuestionMetaData(SimpleYbeNode):
 
 
 @dataclass
-class TextNode(SimpleYbeNode):
-    text: str = ''
+class Text(SimpleYbeNode):
+    text: TextData = field(default_factory=lambda: TextNoMarkup(''))
 
     def to_html(self):
         """Convert the text in this node to HTML and return that.
@@ -285,7 +284,7 @@ class TextNode(SimpleYbeNode):
         Returns:
             str: a HTML conversion of this text block node
         """
-        raise NotImplementedError()
+        return self.text.to_html()
 
     def to_latex(self):
         """Convert the text in this node to Latex and return that.
@@ -293,48 +292,10 @@ class TextNode(SimpleYbeNode):
         Returns:
             str: a Latex conversion of the text in this node
         """
-        raise NotImplementedError()
-
-
-@dataclass
-class TextMarkdown(TextNode):
-    """Text in Markdown format, use as ``text_markdown``."""
+        return self.text.to_latex()
 
     def get_resources(self):
-        return TextHTML(self.to_html()).get_resources()
-
-    def to_html(self):
-        return pypandoc.convert_text(self.text, 'html', 'md', extra_args=['--mathjax'])
-
-    def to_latex(self):
-        return markdown_to_latex(self.text)
-
-
-@dataclass
-class TextHTML(TextNode):
-    """Text in HTML format, use as ``text_html``."""
-
-    def get_resources(self):
-        parsed = BeautifulSoup(self.text, 'lxml')
-
-        def only_files(src):
-            return not any(src.startswith(el) for el in ['http://', 'https://', 'data:'])
-
-        resources = []
-        for img in parsed.find_all('img', src=only_files):
-            resources.append(ImageResource(path=img.get('src'), alt=img.get('alt')))
-        return resources
-
-    def to_html(self):
-        return self.text
-
-    def to_latex(self):
-        return html_to_latex(self.text)
-
-
-@dataclass
-class Text(TextMarkdown):
-    """Subclass of TextMarkDown, i.e. short for ``text_markdown`` in the Ybe file."""
+        return self.text.get_resources()
 
 
 @dataclass
@@ -357,3 +318,4 @@ class Feedback(SimpleYbeNode):
     general: Text = None
     on_correct: Text = None
     on_incorrect: Text = None
+

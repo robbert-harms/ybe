@@ -21,17 +21,3 @@ class YbeLoadingError(YbeBaseError):
 
     def __str__(self):
         return self.description
-
-
-class YbeVisitingError(YbeBaseError):
-
-    def __init__(self, description=''):
-        """Indicates an error while traversing the Ybe node objects.
-
-        Args:
-            description (str): Human-readable description of the problem
-        """
-        self.description = description
-
-    def __str__(self):
-        return self.description

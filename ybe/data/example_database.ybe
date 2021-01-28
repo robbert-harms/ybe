@@ -1,8 +1,8 @@
 ybe_version: 0.2.2
 
 info:
-    title: Example questions
-    description: Some examples of describing questions.
+    title: !html Example <b>questions</>
+    description: !markdown Some examples of *describing* questions.
     document_version: 0.1.1
     date: 2020-04-07
     authors:
@@ -25,20 +25,23 @@ questions:
         - answer:
             text: Fourth answer
             correct: true
-            hint: This question also has a hint.
+            hint: !html <b>This question also has a hint</b>.
 
 - open:
     id: '#2003_2'
     points: 3.14
-    text_html: Example <b>open</b> question with <i>HTML</i> formatting.
+    text: !html Example <b>open</b> question with <i>HTML</i> formatting.
     feedback:
-        general:
-            text: Feedback for after answer submission.
+        general: Feedback for after answer submission.
 
 - multiple_response:
     id: 2015_q1
     points: 1
     text: A multiple response question is a multiple choice question where multiple answers are possible.
+    feedback:
+        general: A general comment can be always shown.
+        on_correct: feedback shown when all the correct items are selected.
+        on_incorrect: feedback shown when the question is answered incorrectly.
     answers:
         - answer:
             text: First answer
@@ -52,13 +55,6 @@ questions:
             correct: true
         - answer:
             text: Fourth answer
-    feedback:
-        general:
-            text: A general comment can be always shown.
-        on_correct:
-            text: feedback shown when all the correct items are selected.
-        on_incorrect:
-            text: feedback shown when the question is answered incorrectly.
 
 - text_only:
     id: 2015_q2
@@ -72,16 +68,12 @@ questions:
         That is, this line will appear on a new line in the example file.
 
         This is not a feature of Ybe perse, but rather a feature of YAML.
-    answers:
-        - answer:
-            text: wrong answer
-        - answer:
-            text: correct answer
-            correct: true
     meta_data:
         general:
             description: Some description for yourself
-            keywords: [alpha, beta]
+            keywords:
+                - alpha
+                - beta
             language: en
             creation_date: 2020-05-29
             authors:
@@ -101,12 +93,18 @@ questions:
                 name: 2020_qz1
                 participants: 200
                 nmr_correct: 25
+    answers:
+        - answer:
+            text: wrong answer
+        - answer:
+            text: correct answer
+            correct: true
 
 - open:
     id: '#2003_1'
     points: 3
-    text: |-
-        Since "text" is short for "text_markdown", you can use Markdown syntax to markup your document.
+    text: !markdown |-
+        This text is prefixed with !markdown, meaning you can use Markdown syntax to markup your document.
 
         For example:
 
@@ -120,17 +118,14 @@ questions:
 
         Next to that, here is an image from Escher:\
         ![Escher](escher.jpg){ width=100% }
-    options:
-        max_words: 1000
-        min_words: 100
-        expected_lines: 7
     feedback:
-        general:
-            text: A comment, could be shown after the student typed some texts.
+        general: A comment, could be shown after the student typed some texts.
     meta_data:
         general:
             description: Some description for yourself
-            keywords: [alpha, epsilon]
+            keywords:
+                - alpha
+                - epsilon
             language: en
             creation_date: 2020-05-29
             authors:
@@ -145,3 +140,7 @@ questions:
                 name: 2020_qz1
                 participants: 1
                 nmr_correct: 0
+    options:
+        max_words: 1000
+        min_words: 100
+        expected_lines: 7
