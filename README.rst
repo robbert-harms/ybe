@@ -100,6 +100,14 @@ An example of an ybe file with all supported questions and some file meta data i
             - answer:
                 text: Second answer
                 correct: true
+        feedback:
+            general: Here's the explanation for
+                    the correct and incorrect
+                    answer (or "general comments")
+            on_correct: Here's the explanation for
+                        the correct answer.
+            on_incorrect: Here's the explanation
+                          for the incorrect answer.
 
     - open:
         id: q2
@@ -109,15 +117,18 @@ An example of an ybe file with all supported questions and some file meta data i
     - multiple_response:
         id: q3
         points: 2
-        text: A multiple response question is a
+        text: !html A multiple response <b>question<b/> is a
             multiple choice question, where
             multiple answers are possible.
         answers:
             - answer:
                 text: First answer
                 correct: true
+                hint: Multiple choice/response answers
+                      can have hints.
             - answer:
                 text: Second answer
+                hint: This is not correct!
             - answer:
                 text: Third answer
                 correct: true
@@ -126,10 +137,9 @@ An example of an ybe file with all supported questions and some file meta data i
 
     - text_only:
         id: q4
-        text: |-
-            Since "text" is short for "text_markdown",
-            you can use Markdown syntax to markup
-            your document.
+        text: !markdown |-
+            This text is prefixed with !markdown, meaning you can
+            use Markdown syntax to markup your document.
 
             For example:
 
