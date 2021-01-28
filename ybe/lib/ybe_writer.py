@@ -12,7 +12,6 @@ from ruamel.yaml.comments import CommentedSeq
 
 from ybe.__version__ import __version__
 from ybe.lib.errors import YbeVisitingError
-from ybe.lib.ybe_contents import YbeNodeVisitor
 
 
 def write_ybe_file(ybe_exam, fname, minimal=False):
@@ -82,7 +81,7 @@ def write_ybe_string(ybe_exam, minimal=False):
     return result.getvalue()
 
 
-class YbeConversionVisitor(YbeNodeVisitor):
+class YbeConversionVisitor:
 
     def __init__(self, minimal=False):
         """Converts an YbeExam into a Python dictionary.
@@ -95,9 +94,9 @@ class YbeConversionVisitor(YbeNodeVisitor):
 
     def visit(self, node):
         method = f'_visit_{node.__class__.__name__}'
-        if not hasattr(self, method):
-            raise YbeVisitingError(f'Unknown node encountered of type {type(node)}.')
-        return getattr(self, method)(node)
+        if hasattr(self, method):
+            return getattr(self, method)(node)
+        raise YbeVisitingError(f'Unknown node encountered of type {type(node)}.')
 
     def _visit_YbeExam(self, node):
         content = {'ybe_version': __version__}
@@ -137,6 +136,9 @@ class YbeConversionVisitor(YbeNodeVisitor):
         data.update(self.visit(node.text))
         data['answers'] = [{'answer': self.visit(el)} for el in node.answers]
 
+        if len(feedback := self.visit(node.feedback)) or not self.minimal:
+            data['feedback'] = feedback
+
         if len(meta_data := self.visit(node.meta_data)) or not self.minimal:
             data['meta_data'] = meta_data
 
@@ -158,6 +160,9 @@ class YbeConversionVisitor(YbeNodeVisitor):
 
         data.update(self.visit(node.text))
         data['answers'] = [{'answer': self.visit(el)} for el in node.answers]
+
+        if len(feedback := self.visit(node.feedback)) or not self.minimal:
+            data['feedback'] = feedback
 
         if len(meta_data := self.visit(node.meta_data)) or not self.minimal:
             data['meta_data'] = meta_data
@@ -182,6 +187,9 @@ class YbeConversionVisitor(YbeNodeVisitor):
 
         if len(options := self.visit(node.options)) or not self.minimal:
             data['options'] = options
+
+        if len(feedback := self.visit(node.feedback)) or not self.minimal:
+            data['feedback'] = feedback
 
         if len(meta_data := self.visit(node.meta_data)) or not self.minimal:
             data['meta_data'] = meta_data
@@ -227,6 +235,9 @@ class YbeConversionVisitor(YbeNodeVisitor):
         if node.correct or not self.minimal:
             data['correct'] = node.correct
 
+        if node.hint or not self.minimal:
+            data['hint'] = node.hint
+
         return data
 
     def _visit_MultipleResponseAnswer(self, node):
@@ -243,6 +254,9 @@ class YbeConversionVisitor(YbeNodeVisitor):
 
         if node.correct or not self.minimal:
             data['correct'] = node.correct
+
+        if node.hint or not self.minimal:
+            data['hint'] = node.hint
 
         return data
 
@@ -272,6 +286,12 @@ class YbeConversionVisitor(YbeNodeVisitor):
         if self.minimal:
             return {k: v for k, v in data.items() if v != node.get_default_value(k)}
         return data
+
+    def _visit_Feedback(self, node):
+        data = node.__dict__
+        if self.minimal:
+            return {k: self.visit(v) for k, v in data.items() if v != node.get_default_value(k)}
+        return {k: (self.visit(v) if v is not None else None) for k, v in node.__dict__.items()}
 
     def _visit_AnalyticsQuestionMetaData(self, node):
         return node.analytics

@@ -21,3 +21,12 @@ Documentation:
         my_env = get_jinja2_environment(loader=ChoiceLoader([FileSystemLoader('/tmp/my_template/'),
                                                              get_jinja2_loader()]))
         write_latex_file(ybe_exam, '/tmp/test/test.tex', jinja2_env=my_env, render_kwargs={})
+
+
+Quality checks on loaded exam:
+    - unique ids on questions
+    - f'A multiple choice question must have exactly 1 answer marked as correct, {s} marked.'
+    - f'A multiple response question must have at least 1 answer marked as correct, {s} marked.'
+    - f'No points set, while points is a required field.'
+    - 'No text block defined in question.'
+    - f'Multiple text blocks found {found_text_modes} in question.'

@@ -13,7 +13,7 @@ from lxml import etree
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-from ybe.lib.ybe_contents import YbeExam, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, TextHTML, Text, \
+from ybe.lib.ybe_nodes import YbeExam, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, TextHTML, Text, \
     MultipleChoiceAnswer, MultipleResponseAnswer, ZipArchiveContext, DirectoryContext, TextOnlyQuestion
 
 
@@ -91,7 +91,12 @@ def _load_qti_manifest(file_load_func):
     if None in ims_manifest_nsmap:
         del ims_manifest_nsmap[None]
 
-    ims_datetime = ims_manifest.xpath('.//imsmd:dateTime', namespaces=ims_manifest_nsmap)[0].text
+    ims_datetime_nodes = ims_manifest.xpath('.//imsmd:dateTime', namespaces=ims_manifest_nsmap)
+    if len(ims_datetime_nodes):
+        ims_datetime = ims_manifest.xpath('.//imsmd:dateTime', namespaces=ims_manifest_nsmap)[0].text
+        date = datetime.strptime(ims_datetime, '%Y-%m-%d').now().date()
+    else:
+        date = datetime.now()
 
     resource_nodes = list(ims_manifest.xpath("//*[local-name() = 'resources']"))[0]
 
@@ -111,18 +116,31 @@ def _load_qti_manifest(file_load_func):
 
         resources.append(resource_info)
 
-    questions_resources = list(filter(lambda el: el['type'] == 'imsqti_xmlv1p2', resources))
-    meta_resources = list(filter(lambda el: el['href'].endswith('assessment_meta.xml'), resources))
 
-    meta_data = _load_assessment_meta(etree.fromstring(file_load_func(meta_resources[0]['file'])))
+    meta_resources = list(filter(lambda el: el['href'].endswith('assessment_meta.xml'), resources))
+    if meta_resources:
+        meta_data = _load_assessment_meta(etree.fromstring(file_load_func(meta_resources[0]['file'])))
+        title = meta_data['title']
+    else:
+        title = ''
 
     questions = []
-    for questions_resource in questions_resources:
-        questions.extend(_load_qti_questions(etree.fromstring(file_load_func(questions_resource['file']))))
 
-    return YbeExam(questions=questions,
-                   info=YbeInfo(title=meta_data['title'],
-                                date=datetime.strptime(ims_datetime, '%Y-%m-%d').now().date()))
+    questions_resources = list(filter(lambda el: el['type'] == 'imsqti_xmlv1p2', resources))
+    for questions_resource in questions_resources:
+        questions.extend(_load_qti_question_resource(etree.fromstring(file_load_func(questions_resource['file']))))
+
+    question_items = list(filter(lambda el: el['type'] == 'imsqti_item_xmlv2p2', resources))
+    for questions_item in question_items:
+        file_content = file_load_func(questions_item['file'])
+        try:
+            xml = etree.fromstring(file_content)
+        except etree.LxmlSyntaxError:
+            xml = etree.fromstring(('<root>' + file_content.decode('utf-8') + '</root>').encode('utf-8'))
+            xml = xml[0]
+        questions.append(_load_qti_question_item(xml))
+
+    return YbeExam(questions=questions, info=YbeInfo(title=title, date=date))
 
 
 def _load_assessment_meta(xml):
@@ -138,8 +156,8 @@ def _load_assessment_meta(xml):
             'description': xml[1].text}
 
 
-def _load_qti_questions(xml):
-    """Load questions from a QTI questions file.
+def _load_qti_question_resource(xml):
+    """Load questions from a QTI questions resource file.
 
     Args:
         xml (etree): the questions file loaded as an etree.
@@ -171,6 +189,11 @@ def _load_qti_questions(xml):
             ybe_questions.append(question_types[meta_data['question_type']](question_node))
 
     return ybe_questions
+
+
+def _load_qti_question_item(xml):
+    """Load a question item from a QTI v2 datafile."""
+    raise NotImplementedError()
 
 
 def _qtimetadata_to_dict(qtimetadata):

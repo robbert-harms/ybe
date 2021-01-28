@@ -8,7 +8,7 @@ __licence__ = 'GPL v3'
 import os
 import jinja2
 
-from ybe.lib.ybe_contents import MultipleChoice, OpenQuestion, TextOnlyQuestion, MultipleResponse
+from ybe.lib.ybe_nodes import MultipleChoice, OpenQuestion, TextOnlyQuestion, MultipleResponse
 
 
 def write_latex_file(ybe_exam, fname, jinja2_env=None, jinja2_kwargs=None):

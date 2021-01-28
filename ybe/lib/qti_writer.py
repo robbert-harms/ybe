@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import quote
 
 from ybe.lib.utils import copy_ybe_resources
-from ybe.lib.ybe_contents import MultipleChoice, MultipleResponse, OpenQuestion, TextOnlyQuestion
+from ybe.lib.ybe_nodes import MultipleChoice, MultipleResponse, OpenQuestion, TextOnlyQuestion
 
 
 def write_qti_zip(ybe_exam, fname, text_formatter=None):

@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations  # needed until Python 3.10
 
 __author__ = 'Robbert Harms'
 __date__ = '2020-04-14'
@@ -23,19 +23,12 @@ from ybe.lib.utils import get_default_value, markdown_to_latex, html_to_latex
 class YbeNode:
     """Basic inheritance class for all Ybe related content nodes."""
 
-    def accept_visitor(self, visitor):
-        """Ybe nodes support the ``visitor pattern`` to allow for document traversal.
+    @classmethod
+    def get_default_value(cls, field_name):
+        """Get the default value for a field of this node.
 
         Args:
-            visitor (YbeNodeVisitor): the visitor we will give a callback.
-        """
-        visitor.visit(self)
-
-    def get_default_value(self, attribute_name):
-        """Get the default value for an attribute of this node.
-
-        Args:
-            attribute_name (str): the name of the attribute for which we want the default value
+            field_name (str): the name of the field for which we want the default value
 
         Returns:
             Any: the default value
@@ -53,38 +46,24 @@ class YbeNode:
         raise NotImplementedError()
 
 
-class YbeNodeVisitor:
-    """Interface class for a node visitor, part of the ``visitor`` design pattern."""
-
-    def visit(self, node):
-        """Visit method, called by the node which accepted this visitor.
-
-        Args:
-            node (YbeNode): the node being visited.
-        """
-        raise NotImplementedError()
-
-
 class SimpleYbeNode(YbeNode):
     """Simple implementation of the required methods of an YbeNode."""
 
-    def get_default_value(self, attribute_name):
+    @classmethod
+    def get_default_value(cls, field_name):
         """By default, resolve the default value using the dataclass fields."""
-        if attribute_name not in self.__dict__:
-            raise AttributeError('Attribute not found in class.')
-
-        for field in fields(self):
-            if field.name == attribute_name:
+        for field in fields(cls):
+            if field.name == field_name:
                 return get_default_value(field)
-
         raise AttributeError('No default value found for class.')
 
     def __post_init__(self):
         """By default, initialize the fields using the :func:`get_default_value` using the dataclass fields."""
         for field in fields(self):
-            value = getattr(self, field.name)
-            if value is None:
-                setattr(self, field.name, get_default_value(field))
+            if field.init:
+                value = getattr(self, field.name)
+                if value is None:
+                    setattr(self, field.name, get_default_value(field))
 
     def get_resources(self):
         def get_resources_of_value(value):
@@ -188,7 +167,7 @@ class YbeExam(SimpleYbeNode):
     """
     info: YbeInfo = field(default_factory=lambda: YbeInfo())
     questions: List[Question] = field(default_factory=list)
-    resource_context: YbeResourceContext = None
+    resource_context: YbeResourceContext = field(init=False)
 
     def get_points_possible(self):
         """Get the maximum number of points possible in this exam.
@@ -210,8 +189,8 @@ class YbeInfo(SimpleYbeNode):
     title: str = None
     description: str = None
     document_version: str = None
-    authors: List[str] = field(default_factory=list)
     date: date = None
+    authors: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -219,6 +198,7 @@ class Question(YbeExamElement):
     id: str = ''
     points: Union[float, int] = 0
     text: TextNode = field(default_factory=lambda: Text())
+    feedback: Feedback = field(default_factory=lambda: Feedback())
     meta_data: QuestionMetaData = field(default_factory=lambda: QuestionMetaData())
 
 
@@ -246,12 +226,14 @@ class TextOnlyQuestion(Question):
 class MultipleChoiceAnswer(SimpleYbeNode):
     text: TextNode = field(default_factory=lambda: Text())
     correct: bool = False
+    hint: str = None
 
 
 @dataclass
 class MultipleResponseAnswer(SimpleYbeNode):
     text: TextNode = field(default_factory=lambda: Text())
     correct: bool = False
+    hint: str = None
 
 
 @dataclass
@@ -272,7 +254,8 @@ class GeneralQuestionMetaData(SimpleYbeNode):
         authors (List[str]): list of authors who made this question
         module (str): the book or module this question is about
         chapters (List[str]): the chapters this question refers to
-        skill_type (str): one of {Knowledge, Comprehension, Application, Analysis, Synthesis, Evaluation}
+        skill_type (str): can be anything, but typically one of
+            {Knowledge, Comprehension, Application, Analysis, Synthesis, Evaluation}
         difficulty (int): a difficulty rating, typically between 1 to 10 with 10 being the most difficult questions.
     """
     description: str = None
@@ -284,8 +267,6 @@ class GeneralQuestionMetaData(SimpleYbeNode):
     chapters: List[str] = field(default_factory=list)
     skill_type: str = None
     difficulty: int = None
-
-    available_skill_types = ['Knowledge', 'Comprehension', 'Application', 'Analysis', 'Synthesis', 'Evaluation']
 
 
 @dataclass
@@ -368,3 +349,11 @@ class OpenQuestionOptions(SimpleYbeNode):
     max_words: int = None
     min_words: int = None
     expected_lines: int = None
+
+
+@dataclass
+class Feedback(SimpleYbeNode):
+    """Feedback texts"""
+    general: Text = None
+    on_correct: Text = None
+    on_incorrect: Text = None
