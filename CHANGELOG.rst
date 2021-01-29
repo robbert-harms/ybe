@@ -2,6 +2,22 @@
 Changelog
 *********
 
+v0.3.0 (2021-01-29)
+===================
+Overhaul of the Ybe data structure, moved away from ``text_markup`` and ``text_html`` and instead
+use Yaml tags for this purpose. In the new system, marking a text item as markdown is now done using ``field: !markdown text...``.
+
+Additionally, this version supports question comments with QTI reading and writing support.
+
+Added
+-----
+- Adds QTI writing support for hints and explanations.
+
+Changed
+-------
+- Updated the Ybe format. Adds hints and explanations as fields.
+
+
 v0.2.2 (2020-06-01)
 ===================
 
