@@ -6,15 +6,12 @@ __maintainer__ = 'Robbert Harms'
 __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
-import os
-import shutil
-import zipfile
 from datetime import date
 
 from dataclasses import dataclass, field, fields
-from typing import List, Union
+from typing import List, Union, get_type_hints
 
-from ybe.lib.data_types import TextData, TextNoMarkup
+from ybe.lib.data_types import TextData, PlainText, YbeResourceContext
 from ybe.lib.utils import get_default_value
 
 
@@ -35,12 +32,12 @@ class YbeNode:
         raise NotImplementedError()
 
     def get_resources(self):
-        """Get a list of :class:`YbeResources` in this node or sub-tree.
+        """Get a list of :class:`ResourceData` in this node or sub-tree.
 
         This will need to do a recursive lookup to find all the resources.
 
         Returns:
-            List[YbeResource]: list of resources nodes.
+            List[ResourceData]: list of resources nodes.
         """
         raise NotImplementedError()
 
@@ -57,17 +54,32 @@ class SimpleYbeNode(YbeNode):
         raise AttributeError('No default value found for class.')
 
     def __post_init__(self):
-        """By default, initialize the fields using the :func:`get_default_value` using the dataclass fields."""
+        """Apply some data type checks and value checks.
+
+        First, if a provided value is None, we want to initialize it do the indicated default value.
+        As such, this routine initializes fields using the :func:`get_default_value` from the dataclass fields.
+
+        Second, if a field is marked as type TextData, we want to convert provided str types to TextData.
+        """
+        type_hints = get_type_hints(type(self))
+
         for field in fields(self):
             if field.init:
                 value = getattr(self, field.name)
                 if value is None:
                     setattr(self, field.name, get_default_value(field))
+                    continue
+
+                if type_hints[field.name] == TextData and isinstance(value, str):
+                    setattr(self, field.name, PlainText(value))
+                    continue
 
     def get_resources(self):
         def get_resources_of_value(value):
             resources = []
             if isinstance(value, YbeNode):
+                resources.extend(value.get_resources())
+            elif isinstance(value, TextData):
                 resources.extend(value.get_resources())
             elif isinstance(value, (list, tuple)):
                 for el in value:
@@ -79,83 +91,6 @@ class SimpleYbeNode(YbeNode):
             resources.extend(get_resources_of_value(value))
 
         return resources
-
-
-@dataclass
-class YbeExamElement(SimpleYbeNode):
-    """Base class for questions and other nodes appearing in an exam / questionnaire."""
-
-
-@dataclass
-class YbeResource(SimpleYbeNode):
-    """Reference to another file for included content."""
-    path: str = None
-
-
-@dataclass
-class ImageResource(YbeResource):
-    """Path and meta data of an image which need to be included as a resource."""
-    alt: str = None
-
-
-@dataclass
-class YbeResourceContext:
-    """The context used to load Ybe resource."""
-
-    def copy_resource(self, resource, dirname):
-        """Copy the indicated resource to the indicated directory.
-
-        Args:
-            resource (YbeResource): the resource to copy
-            dirname (str): the directory to copy to
-
-        Returns:
-            str: the path to the new file
-        """
-        raise NotImplementedError()
-
-
-@dataclass
-class ZipArchiveContext(YbeResourceContext):
-    """Loading resources from a zipped archive."""
-    path: str
-
-    def copy_resource(self, resource, dirname):
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-
-        if os.path.isabs(resource.path):
-            return shutil.copy(resource.path, dirname)
-        else:
-            if subdir := os.path.dirname(resource.path):
-                dirname = os.path.join(dirname, subdir) + '/'
-
-                if not os.path.exists(dirname):
-                    os.makedirs(dirname)
-
-            archive = zipfile.ZipFile(self.path, 'r')
-            return archive.extract(resource.path, dirname)
-
-
-@dataclass
-class DirectoryContext(YbeResourceContext):
-    """Loading resources from a directory"""
-    path: str
-
-    def copy_resource(self, resource, dirname):
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-
-        if os.path.isabs(resource.path):
-            return shutil.copy(resource.path, dirname)
-        else:
-            if subdir := os.path.dirname(resource.path):
-                dirname = os.path.join(dirname, subdir) + '/'
-
-                if not os.path.exists(dirname):
-                    os.makedirs(dirname)
-
-            return shutil.copy(os.path.join(self.path, resource.path), dirname)
 
 
 @dataclass
@@ -174,7 +109,7 @@ class YbeExam(SimpleYbeNode):
         Returns:
             float: the maximum number of points possible.
         """
-        return sum(question.points for question in self.questions)
+        return sum(question.points for question in self.questions if hasattr(question, 'points'))
 
     def __str__(self):
         """Prints itself in Ybe Yaml format."""
@@ -185,20 +120,25 @@ class YbeExam(SimpleYbeNode):
 @dataclass
 class YbeInfo(SimpleYbeNode):
     """The header information in a Ybe file."""
-    title: Text = None
-    description: Text = None
+    title: TextData = field(default_factory=lambda: PlainText(''))
+    description: TextData = field(default_factory=lambda: PlainText(''))
     document_version: str = None
     date: date = None
     authors: List[str] = field(default_factory=list)
 
 
 @dataclass
-class Question(YbeExamElement):
+class YbeExamElement(SimpleYbeNode):
+    """Base class for questions and other nodes appearing in an exam / questionnaire."""
     id: str = ''
-    points: Union[float, int] = 0
-    text: Text = field(default_factory=lambda: Text())
+    text: TextData = field(default_factory=lambda: PlainText(''))
     feedback: Feedback = field(default_factory=lambda: Feedback())
     meta_data: QuestionMetaData = field(default_factory=lambda: QuestionMetaData())
+
+
+@dataclass
+class Question(YbeExamElement):
+    points: Union[float, int] = 0
 
 
 @dataclass
@@ -217,22 +157,22 @@ class OpenQuestion(Question):
 
 
 @dataclass
-class TextOnlyQuestion(Question):
+class TextOnly(YbeExamElement):
     pass
 
 
 @dataclass
 class MultipleChoiceAnswer(SimpleYbeNode):
-    text: Text = field(default_factory=lambda: Text())
+    text: TextData = field(default_factory=lambda: PlainText(''))
     correct: bool = False
-    hint: Text = None
+    hint: TextData = None
 
 
 @dataclass
 class MultipleResponseAnswer(SimpleYbeNode):
-    text: Text = field(default_factory=lambda: Text())
+    text: TextData = field(default_factory=lambda: PlainText(''))
     correct: bool = False
-    hint: Text = None
+    hint: TextData = None
 
 
 @dataclass
@@ -275,30 +215,6 @@ class AnalyticsQuestionMetaData(SimpleYbeNode):
 
 
 @dataclass
-class Text(SimpleYbeNode):
-    text: TextData = field(default_factory=lambda: TextNoMarkup(''))
-
-    def to_html(self):
-        """Convert the text in this node to HTML and return that.
-
-        Returns:
-            str: a HTML conversion of this text block node
-        """
-        return self.text.to_html()
-
-    def to_latex(self):
-        """Convert the text in this node to Latex and return that.
-
-        Returns:
-            str: a Latex conversion of the text in this node
-        """
-        return self.text.to_latex()
-
-    def get_resources(self):
-        return self.text.get_resources()
-
-
-@dataclass
 class OpenQuestionOptions(SimpleYbeNode):
     """Options concerning an open question.
 
@@ -315,7 +231,7 @@ class OpenQuestionOptions(SimpleYbeNode):
 @dataclass
 class Feedback(SimpleYbeNode):
     """Feedback texts"""
-    general: Text = None
-    on_correct: Text = None
-    on_incorrect: Text = None
+    general: TextData = None
+    on_correct: TextData = None
+    on_incorrect: TextData = None
 

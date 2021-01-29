@@ -1,31 +1,9 @@
 Important:
-    - check qti import
-    - check qti export
-
+    - fix qti export
+        - need to implement resprocessing to get the hints to work
 
 Wish list:
     - scoring form
-    - export to latex (add option to print question ID or not)
-    - warning if multiple choice question has no:
-        - correct answer
-    - implement warnings system
     - gui?
-    - write down format descriptions
-        - i.e. which kind of values are allows and which are not
     - query functions
     - documentation
-
-
-
-
-Documentation:
-    - writing latex files with an own template:
-        my_env = get_jinja2_environment(loader=ChoiceLoader([FileSystemLoader('/tmp/my_template/'),
-                                                             get_jinja2_loader()]))
-        write_latex_file(ybe_exam, '/tmp/test/test.tex', jinja2_env=my_env, render_kwargs={})
-
-
-Quality checks on loaded exam:
-    - f'No points set, while points is a required field.'
-    - 'No text block defined in question.'
-    - f'Multiple text blocks found {found_text_modes} in question.'

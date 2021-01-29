@@ -8,11 +8,18 @@ __licence__ = 'GPL v3'
 import os
 import jinja2
 
-from ybe.lib.ybe_nodes import MultipleChoice, OpenQuestion, TextOnlyQuestion, MultipleResponse
+from ybe.lib.ybe_nodes import MultipleChoice, OpenQuestion, TextOnly, MultipleResponse
 
 
 def write_latex_file(ybe_exam, fname, jinja2_env=None, jinja2_kwargs=None):
     """Write the provided Ybe object as a Latex file.
+
+
+    Latex output can be completely customized using the Jinja2 templating system::
+
+        my_env = get_jinja2_environment(loader=ChoiceLoader([
+            FileSystemLoader('/tmp/my_template/'), get_jinja2_loader()]))
+        write_latex_file(ybe_exam, '/tmp/test/test.tex', jinja2_env=my_env, render_kwargs={})
 
     Args:
         ybe_exam (ybe.lib.ybe_exam.YbeExam): the ybe file object to dump
@@ -80,7 +87,7 @@ def get_jinja2_environment(**kwargs):
 
     env.tests['multiple_choice'] = lambda question: isinstance(question, MultipleChoice)
     env.tests['open'] = lambda question: isinstance(question, OpenQuestion)
-    env.tests['text_only'] = lambda question: isinstance(question, TextOnlyQuestion)
+    env.tests['text_only'] = lambda question: isinstance(question, TextOnly)
     env.tests['multiple_response'] = lambda question: isinstance(question, MultipleResponse)
 
     return env

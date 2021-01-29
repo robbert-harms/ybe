@@ -33,13 +33,7 @@
       <outcomes>
         <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
       </outcomes>
-      <respcondition continue="No">
-        <conditionvar>
-          <and>
-            {answer_conditions}
-          </and>
-        </conditionvar>
-        <setvar action="Set" varname="SCORE">100</setvar>
-      </respcondition>
+      {respconditions}
     </resprocessing>
+    {feedback_items}
 </item>

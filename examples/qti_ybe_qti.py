@@ -13,7 +13,7 @@ from ybe.lib.utils import copy_ybe_resources
 
 def qti_to_ybe(qti_path, output_path):
     ybe_exam = read_qti_zip(qti_path)
-    write_ybe_file(ybe_exam, output_path)
+    write_ybe_file(ybe_exam, output_path, minimal=True)
     copy_ybe_resources(ybe_exam, output_dir)
 
 

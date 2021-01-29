@@ -13,9 +13,9 @@ from lxml import etree
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-from ybe.lib.data_types import TextHTML, TextNoMarkup
-from ybe.lib.ybe_nodes import YbeExam, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, Text, \
-    MultipleChoiceAnswer, MultipleResponseAnswer, ZipArchiveContext, DirectoryContext, TextOnlyQuestion, Feedback
+from ybe.lib.data_types import TextHTML, PlainText, ZipArchiveContext, DirectoryContext
+from ybe.lib.ybe_nodes import YbeExam, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, \
+    MultipleChoiceAnswer, MultipleResponseAnswer, TextOnly, Feedback
 
 
 def read_qti_zip(zip_file):
@@ -157,8 +157,8 @@ def _load_assessment_meta(xml):
     Returns:
         dict: information parserd from the assessment_meta.xml file
     """
-    return {'title': Text(TextNoMarkup(xml[0].text)),
-            'description': Text(TextNoMarkup(xml[1].text))}
+    return {'title': PlainText(xml[0].text),
+            'description': PlainText(xml[1].text)}
 
 
 def _load_qti_question_resource(xml):
@@ -372,9 +372,8 @@ def _load_text_only_question(question_node):
     Returns:
          ybe.lib.ybe_contents.TextOnlyQuestion: loaded question
     """
-    meta_data = _qtimetadata_to_dict(question_node[0][0])
     text = _load_text(question_node[1][0])
-    return TextOnlyQuestion(id=question_node.get('ident'), text=text, points=float(meta_data['points_possible']))
+    return TextOnly(id=question_node.get('ident'), text=text)
 
 
 def _load_text(material_node):
@@ -419,10 +418,10 @@ def _load_text(material_node):
             img.replaceWith(eq_span)
 
         html_without_html_and_body_tags = "".join([str(x) for x in parsed_html.body.children])
-        return Text(TextHTML(html_without_html_and_body_tags))
+        return TextHTML(html_without_html_and_body_tags)
 
     if texttype == 'text/plain':
-        return Text(TextNoMarkup(mattext.text))
+        return PlainText(mattext.text)
 
     raise ValueError('No suitable text type found.')
 

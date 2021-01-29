@@ -4,6 +4,11 @@ __maintainer__ = 'Robbert Harms'
 __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
+import os
+import shutil
+import zipfile
+
+from dataclasses import dataclass
 
 import pypandoc
 from bs4 import BeautifulSoup
@@ -37,12 +42,10 @@ class TextData:
         raise NotImplementedError()
 
     def get_resources(self):
-        """Get a list of :class:`YbeResources` in this node or sub-tree.
-
-        This will need to do a recursive lookup to find all the resources.
+        """Get a list of :class:`YbeResources` from this data.
 
         Returns:
-            List[YbeResource]: list of resources nodes.
+            List[YbeResource]: list of resources data.
         """
         raise NotImplementedError()
 
@@ -50,10 +53,10 @@ class TextData:
         return self.text
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(text={self.text})'
+        return f'{self.__class__.__name__}(text={repr(self.text)})'
 
 
-class TextNoMarkup(TextData):
+class PlainText(TextData):
 
     def to_html(self):
         return self.text
@@ -86,8 +89,6 @@ class TextHTML(TextData):
         return html_to_latex(self.text)
 
     def get_resources(self):
-        from ybe.lib.ybe_nodes import ImageResource
-
         parsed = BeautifulSoup(self.text, 'lxml')
 
         def only_files(src):
@@ -121,3 +122,75 @@ class TextMarkdown(TextData):
 
     def get_resources(self):
         return TextHTML(self.to_html()).get_resources()
+
+
+@dataclass
+class ResourceData:
+    """Reference to a file for included content."""
+    path: str = None
+
+
+@dataclass
+class ImageResource(ResourceData):
+    """Path and meta data of an image which need to be included as a resource."""
+    alt: str = None
+
+
+@dataclass
+class YbeResourceContext:
+    """The context used to load Ybe resource."""
+
+    def copy_resource(self, resource, dirname):
+        """Copy the indicated resource to the indicated directory.
+
+        Args:
+            resource (ResourceData): the resource to copy
+            dirname (str): the directory to copy to
+
+        Returns:
+            str: the path to the new file
+        """
+        raise NotImplementedError()
+
+
+@dataclass
+class ZipArchiveContext(YbeResourceContext):
+    """Loading resources from a zipped archive."""
+    path: str
+
+    def copy_resource(self, resource, dirname):
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
+        if os.path.isabs(resource.path):
+            return shutil.copy(resource.path, dirname)
+        else:
+            if subdir := os.path.dirname(resource.path):
+                dirname = os.path.join(dirname, subdir) + '/'
+
+                if not os.path.exists(dirname):
+                    os.makedirs(dirname)
+
+            archive = zipfile.ZipFile(self.path, 'r')
+            return archive.extract(resource.path, dirname)
+
+
+@dataclass
+class DirectoryContext(YbeResourceContext):
+    """Loading resources from a directory"""
+    path: str
+
+    def copy_resource(self, resource, dirname):
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
+        if os.path.isabs(resource.path):
+            return shutil.copy(resource.path, dirname)
+        else:
+            if subdir := os.path.dirname(resource.path):
+                dirname = os.path.join(dirname, subdir) + '/'
+
+                if not os.path.exists(dirname):
+                    os.makedirs(dirname)
+
+            return shutil.copy(os.path.join(self.path, resource.path), dirname)

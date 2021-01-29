@@ -10,10 +10,10 @@ from typing import get_type_hints, get_args, get_origin, Any
 
 from ruamel.yaml import YAML
 
-from ybe.lib.data_types import TextHTML, TextMarkdown, TextData, TextNoMarkup
+from ybe.lib.data_types import TextHTML, TextMarkdown, DirectoryContext
 from ybe.lib.errors import YbeLoadingError
 from ybe.lib.ybe_nodes import YbeExam, MultipleChoice, OpenQuestion, MultipleChoiceAnswer, \
-    MultipleResponse, DirectoryContext, TextOnlyQuestion, MultipleResponseAnswer
+    MultipleResponse, TextOnly, MultipleResponseAnswer
 
 
 def read_ybe_file(fname):
@@ -119,11 +119,6 @@ class YbeLoader:
                 return ResultValue([self.load(list_root_node, el) for el in value])
         return ResultValue(value)
 
-    def _load_node_Text(self, node, data):
-        if isinstance(data, TextData):
-            return node(data)
-        return node(TextNoMarkup(data))
-
     def _load_node_AnalyticsQuestionMetaData(self, node, data):
         return node(data)
 
@@ -133,7 +128,7 @@ class YbeLoader:
                 'multiple_choice': MultipleChoice,
                 'multiple_response': MultipleResponse,
                 'open': OpenQuestion,
-                'text_only': TextOnlyQuestion
+                'text_only': TextOnly
             }
             result = []
             for question in data['questions']:

@@ -10,7 +10,7 @@ Exams can be written as a LaTeX file, or be exported to the QTI format and be im
 Examples
 ********
 Questions can be stored in a plain text file using `YAML <https://en.wikipedia.org/wiki/YAML>`_ for structure and
-`Markdown <https://en.wikipedia.org/wiki/Markdown>`_ for the content of the questions.
+`Markdown <https://en.wikipedia.org/wiki/Markdown>`_ , HTML or plain text, for the content of the questions.
 
 
 Minimal .ybe file
@@ -26,7 +26,7 @@ For example, a minimal example of a multiple choice question is given by:
     - multiple_choice:
         id: q1
         points: 1
-        text: Example multiple choice question.
+        text: !markdown Example *multiple* choice question.
         answers:
             - answer:
                 text: First answer
@@ -38,8 +38,10 @@ For example, a minimal example of a multiple choice question is given by:
 This defines a list of questions with only one question. The ``id`` is meant to be provide
 a unique identifier to every question and should be unique for every question in an .ybe file.
 The points define the worth of the question.
-The text is in Markdown format and allows all Markdown operators.
-The answers are again a list with Markdown text blocks and a marked correct answer.
+By prefixing the text with ``!markdown`` we indicate that that the text is in Markdown format
+and as such allows all Markdown operators.
+The answers are not prefixed with ``!markdown`` making them plain text.
+The item ``correct`` marks the correct answer.
 
 
 Exporting to QTI
@@ -63,7 +65,7 @@ If you would copy the previous Ybe content into a text file named ``example.ybe`
 
 Exporting to LaTeX
 ==================
-Alternatively, you could output your exam to a Latex file read for printing:
+Alternatively, you could output your exam to a Latex file ready for printing:
 
 .. code-block:: python
 
@@ -151,6 +153,38 @@ An example of an ybe file with all supported questions and some file meta data i
             and this is a basic displayed formula:
 
             $$ a^2 = b^2 + c^2 $$
+
+
+Support for hints and explanations
+==================================
+Ybe supports comments to the answer of a question by means of ``hints`` and ``explanations``.
+Explanations can be added to any question and allow commenting on the provided answer.
+Hints are meant as a comment to a selected multiple choice or multiple response answer.
+In Ybe, these can be added as follows:
+
+.. code-block:: yaml
+
+    questions:
+    - multiple_choice:
+        id: q1
+        points: 1
+        text: Example multiple choice question.
+        answers:
+            - answer:
+                text: First answer
+                hint: This is the wrong answer
+            - answer:
+                text: Second answer
+                correct: true
+                hint: This is the correct answer
+        feedback:
+            general: General comment after finishing the question.
+            on_correct: Here's the explanation for the correct answer.
+            on_incorrect: Here's the explanation for the incorrect answer.
+
+
+That is, every ``answer`` can contain a ``hint``, and every ``question`` can contain a ``feedback`` element.
+What to do with this information is application dependent.
 
 
 Adding meta-data

@@ -7,15 +7,14 @@ __licence__ = 'GPL v3'
 import os
 from dataclasses import fields
 from io import StringIO
-from typing import get_type_hints
 
 from ruamel.yaml import YAML
 from ruamel.yaml import scalarstring
 
 from ybe.__version__ import __version__
-from ybe.lib.data_types import TextHTML, TextMarkdown, TextNoMarkup, TextData
-from ybe.lib.ybe_nodes import YbeNode, Text, Question, MultipleChoice, MultipleResponse, OpenQuestion, TextOnlyQuestion, \
-    MultipleResponseAnswer, MultipleChoiceAnswer, AnalyticsQuestionMetaData
+from ybe.lib.data_types import TextHTML, TextMarkdown, PlainText, TextData
+from ybe.lib.ybe_nodes import YbeNode, MultipleChoice, MultipleResponse, OpenQuestion, TextOnly, \
+    MultipleResponseAnswer, MultipleChoiceAnswer, AnalyticsQuestionMetaData, YbeExamElement
 
 
 def write_ybe_file(ybe_exam, fname, minimal=False):
@@ -50,8 +49,10 @@ def write_ybe_string(ybe_exam, minimal=False):
     content.update(visitor.convert(ybe_exam))
 
     yaml = YAML(typ='rt')
+
     yaml.register_class(TextHTML)
     yaml.register_class(TextMarkdown)
+
     yaml.default_flow_style = False
     yaml.allow_unicode = True
     yaml.width = float('inf')
@@ -108,34 +109,32 @@ class YbeConversionVisitor:
     def _defaultconvert(self, node):
         results = {}
 
-        field_types = get_type_hints(type(node))
-
-        for field in fields(node):
+        for field in self._get_fields(node):
             if not field.init:
                 continue
 
             value = getattr(node, field.name)
-
             if self.minimal and value == node.get_default_value(field.name):
                 continue
-
-            if field_types[field.name] == Text:
-                result = None
-                if value is not None:
-                    result = self._convert_value(value.text)
-            else:
-                result = self._convert_value(value)
-
-            results[field.name] = result
+            results[field.name] = self._convert_value(value)
         return results
 
+    def _get_fields(self, node):
+        field_list = fields(node)
+
+        if isinstance(node, YbeExamElement):
+            preferred_order = ['id', 'points', 'text', 'answers', 'options', 'feedback', 'meta_data']
+            return sorted(field_list, key=lambda el: (preferred_order.index(el.name)
+                                                      if el.name in preferred_order else len(preferred_order) + 1))
+        return field_list
+
     def _convert_value(self, value):
-        if isinstance(value, Question):
+        if isinstance(value, YbeExamElement):
             question_types = {
                 MultipleChoice: 'multiple_choice',
                 MultipleResponse: 'multiple_response',
                 OpenQuestion: 'open',
-                TextOnlyQuestion: 'text_only'
+                TextOnly: 'text_only'
             }
             return {question_types[value.__class__]: self.convert(value)}
 
@@ -152,7 +151,7 @@ class YbeConversionVisitor:
             return self.convert(value)
 
         if isinstance(value, TextData):
-            if isinstance(value, TextNoMarkup):
+            if isinstance(value, PlainText):
                 if '\n' in value.text:
                     return scalarstring.PreservedScalarString(value.text)
                 return value.text

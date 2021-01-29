@@ -38,10 +38,6 @@ questions:
     id: 2015_q1
     points: 1
     text: A multiple response question is a multiple choice question where multiple answers are possible.
-    feedback:
-        general: A general comment can be always shown.
-        on_correct: feedback shown when all the correct items are selected.
-        on_incorrect: feedback shown when the question is answered incorrectly.
     answers:
         - answer:
             text: First answer
@@ -55,6 +51,10 @@ questions:
             correct: true
         - answer:
             text: Fourth answer
+    feedback:
+        general: A general comment can be always shown.
+        on_correct: feedback shown when all the correct items are selected.
+        on_incorrect: feedback shown when the question is answered incorrectly.
 
 - text_only:
     id: 2015_q2
@@ -68,6 +68,12 @@ questions:
         That is, this line will appear on a new line in the example file.
 
         This is not a feature of Ybe perse, but rather a feature of YAML.
+    answers:
+        - answer:
+            text: wrong answer
+        - answer:
+            text: correct answer
+            correct: true
     meta_data:
         general:
             description: Some description for yourself
@@ -93,12 +99,6 @@ questions:
                 name: 2020_qz1
                 participants: 200
                 nmr_correct: 25
-    answers:
-        - answer:
-            text: wrong answer
-        - answer:
-            text: correct answer
-            correct: true
 
 - open:
     id: '#2003_1'
@@ -118,6 +118,10 @@ questions:
 
         Next to that, here is an image from Escher:\
         ![Escher](escher.jpg){ width=100% }
+    options:
+        max_words: 1000
+        min_words: 100
+        expected_lines: 7
     feedback:
         general: A comment, could be shown after the student typed some texts.
     meta_data:
@@ -140,7 +144,3 @@ questions:
                 name: 2020_qz1
                 participants: 1
                 nmr_correct: 0
-    options:
-        max_words: 1000
-        min_words: 100
-        expected_lines: 7
