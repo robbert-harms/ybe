@@ -2,6 +2,14 @@
 Changelog
 *********
 
+v0.3.1 (2021-01-30)
+===================
+
+Fixed
+-----
+- Fixed the QTI parser, it now correctly parses the correct answers of multiple response questions.
+
+
 v0.3.0 (2021-01-29)
 ===================
 Overhaul of the Ybe data structure, moved away from ``text_markup`` and ``text_html`` and instead
