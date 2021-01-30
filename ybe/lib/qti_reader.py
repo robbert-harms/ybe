@@ -117,12 +117,11 @@ def _load_qti_manifest(file_load_func):
 
         resources.append(resource_info)
 
+    ybe_info = {}
     meta_resources = list(filter(lambda el: el['href'].endswith('assessment_meta.xml'), resources))
     if meta_resources:
         meta_data = _load_assessment_meta(etree.fromstring(file_load_func(meta_resources[0]['file'])))
-        title = meta_data['title']
-    else:
-        title = ''
+        ybe_info.update(meta_data)
 
     questions = []
 
@@ -140,12 +139,20 @@ def _load_qti_manifest(file_load_func):
             xml = xml[0]
         questions.append(_load_qti_question_item(xml))
 
-    return YbeExam(questions=questions, info=YbeInfo(title=title, date=date))
+    return YbeExam(questions=questions, info=YbeInfo(date=date, **ybe_info))
 
 
 def _get_nodes_ending_with(node, postfix):
     """Get all the nodes ending with the provided postfix."""
     return [child for child in node if child.tag.endswith(postfix)]
+
+
+def _get_first_node_ending_with(node, postfix):
+    """Get the first node ending with the provided postfix."""
+    nodes = _get_nodes_ending_with(node, postfix)
+    if len(nodes):
+        return nodes[0]
+    return None
 
 
 def _load_assessment_meta(xml):
@@ -157,8 +164,13 @@ def _load_assessment_meta(xml):
     Returns:
         dict: information parserd from the assessment_meta.xml file
     """
-    return {'title': PlainText(xml[0].text),
-            'description': PlainText(xml[1].text)}
+    items = {}
+
+    if (title_node := _get_first_node_ending_with(xml, 'title')) is not None:
+        items['title'] = TextHTML(title_node.text)
+    if (description_node := _get_first_node_ending_with(xml, 'description')) is not None:
+        items['description'] = TextHTML(description_node.text)
+    return items
 
 
 def _load_qti_question_resource(xml):
@@ -298,12 +310,7 @@ def _load_multiple_response(question_node):
     meta_data = _qtimetadata_to_dict(question_node[0][0])
     feedbacks = _load_feedbacks(_get_nodes_ending_with(question_node, 'itemfeedback'))
     text = _load_text(question_node[1][0])
-
-    correct_answers = []
-    and_node = question_node[2][1][0][0]
-    for condition_node in and_node:
-        if condition_node.tag.endswith('varequal'):
-            correct_answers.append(condition_node.text)
+    correct_answers = _load_multiple_response_correct_answers(question_node[2])
 
     answers = []
     for response_label in question_node[1][1][0]:
@@ -317,6 +324,37 @@ def _load_multiple_response(question_node):
                             feedback=Feedback(general=feedbacks.get('general_fb'),
                                               on_correct=feedbacks.get('correct_fb'),
                                               on_incorrect=feedbacks.get('general_incorrect_fb')))
+
+
+def _load_multiple_response_correct_answers(resprocessing_node):
+    """Load the correct answers from the right ``respcondition`` node.
+
+    Args:
+        resprocessing_node (etree): the node with all the respcondition nodes.
+
+    Returns:
+        List[str]: list with the correct answer id's
+    """
+    def is_scoring_respcondition(respcondition):
+        """Get the respcondition node holding the scoring condition.
+
+        This is typically the node holding the ``setvar`` node.
+        """
+        return len(_get_nodes_ending_with(respcondition, 'setvar'))
+
+    def parse_correct_answers(conditionvar):
+        """Parse the correct answers from the conditionvar node."""
+        correct_answers = []
+        and_node = conditionvar[0]
+        for condition_node in and_node:
+            if condition_node.tag.endswith('varequal'):
+                correct_answers.append(condition_node.text)
+        return correct_answers
+
+    for respcondition in resprocessing_node:
+        if is_scoring_respcondition(respcondition):
+            return parse_correct_answers(respcondition[0])
+    return []
 
 
 def _load_open_question(question_node):

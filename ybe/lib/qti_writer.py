@@ -149,7 +149,7 @@ def _write_assessment_meta(ybe_exam, dirname, assessment_identifier, text_format
         text_formatter (TextFormatter): specific actions to format the HTML text for use in the QTI.
     """
     template_items = {
-        'title': _escape_attr(text_formatter.format(ybe_exam.info.title.to_html())),
+        'title': _escape_attr(ybe_exam.info.title.to_plaintext()),
         'description': _escape_attr(text_formatter.format(ybe_exam.info.description.to_html())),
         'points_possible': float(ybe_exam.get_points_possible()),
         'assignment_identifier': uuid.uuid4().hex,

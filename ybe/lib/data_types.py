@@ -33,6 +33,14 @@ class TextData:
         """
         raise NotImplementedError()
 
+    def to_plaintext(self):
+        """Convert the text in this node to plain text.
+
+        Returns:
+            str: the text in this node as plain text
+        """
+        raise NotImplementedError()
+
     def to_latex(self):
         """Convert the text in this node to Latex and return that.
 
@@ -64,6 +72,9 @@ class PlainText(TextData):
     def to_latex(self):
         return self.text
 
+    def to_plaintext(self):
+        return self.text
+
     def get_resources(self):
         return []
 
@@ -87,6 +98,10 @@ class TextHTML(TextData):
 
     def to_latex(self):
         return html_to_latex(self.text)
+
+    def to_plaintext(self):
+        parsed = BeautifulSoup(self.text, 'lxml')
+        return parsed.get_text()
 
     def get_resources(self):
         parsed = BeautifulSoup(self.text, 'lxml')
@@ -119,6 +134,9 @@ class TextMarkdown(TextData):
 
     def to_latex(self):
         return markdown_to_latex(self.text)
+
+    def to_plaintext(self):
+        return self.text
 
     def get_resources(self):
         return TextHTML(self.to_html()).get_resources()

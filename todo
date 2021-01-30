@@ -1,9 +1,7 @@
 Important:
-    - fix qti export
-        - need to implement resprocessing to get the hints to work
+
 
 Wish list:
-    - scoring form
-    - gui?
-    - query functions
-    - documentation
+    - cli scripts
+    - gui
+    - full documentation
