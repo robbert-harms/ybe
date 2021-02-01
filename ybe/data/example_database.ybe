@@ -1,4 +1,4 @@
-ybe_version: 0.2.2
+ybe_version: 0.3.1
 
 info:
     title: !html Example <b>questions</b>
@@ -12,6 +12,7 @@ info:
 questions:
 - multiple_choice:
     id: 2013_q2
+    title: Example multiple choice
     points: 1
     text: Example multiple choice question (question with only one correct answer possible).
     answers:
@@ -29,6 +30,7 @@ questions:
 
 - open:
     id: '#2003_2'
+    title: Very hard question title
     points: 3.14
     text: !html Example <b>open</b> question with <i>HTML</i> formatting.
     feedback:
@@ -58,6 +60,7 @@ questions:
 
 - text_only:
     id: 2015_q2
+    title: Some example data
     text: This is not a question, but a piece of text. Can be used to inject information in a series of questions.
 
 - multiple_choice:

@@ -131,6 +131,7 @@ class YbeInfo(SimpleYbeNode):
 class YbeExamElement(SimpleYbeNode):
     """Base class for questions and other nodes appearing in an exam / questionnaire."""
     id: str = ''
+    title: TextData = None
     text: TextData = field(default_factory=lambda: PlainText(''))
     feedback: Feedback = field(default_factory=lambda: Feedback())
     meta_data: QuestionMetaData = field(default_factory=lambda: QuestionMetaData())

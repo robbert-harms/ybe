@@ -1,4 +1,8 @@
+{% if question.title is none %}
 ## Information
+{% else %}
+## {{ question.title.to_markdown() }}
+{% endif %}
 
-\VAR{question.text.to_markdown()}
+{{ question.text.to_markdown() }}
 

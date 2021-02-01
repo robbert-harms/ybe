@@ -1,4 +1,8 @@
+\BLOCK{ if question.title is none }
 \subsection*{Question \VAR{question_index} \hspace{1em} \color{gray} (points: \VAR{question.points}) }
+\BLOCK{ else }
+\subsection*{Question \VAR{question_index}: \VAR{question.title.to_latex()} \hspace{1em} \color{gray} (points: \VAR{question.points}) }
+\BLOCK{ endif }
 \VAR{question.text.to_latex()}
 \begin{enumerate}[label=\arabic*)]
 \BLOCK{ for answer in question.answers }

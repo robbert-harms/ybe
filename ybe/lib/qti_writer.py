@@ -14,6 +14,7 @@ from xml.sax.saxutils import quoteattr, escape
 from bs4 import BeautifulSoup
 from urllib.parse import quote
 
+from ybe.lib.data_types import TextHTML
 from ybe.lib.utils import copy_ybe_resources
 from ybe.lib.ybe_nodes import MultipleChoice, MultipleResponse, OpenQuestion, TextOnly
 
@@ -226,7 +227,7 @@ def _convert_multiple_choice(question, text_formatter):
 
     template_items = {
         'question_identifier': _escape_attr(question.id),
-        'question_title': 'Question',
+        'question_title': _escape_text(question.title.to_plaintext()) or 'Question',
         'points_possible': question.points,
         'assessment_question_identifierref': uuid.uuid4().hex,
         'question_text': _escape_text(text_formatter.format(question.text.to_html())),
@@ -262,7 +263,7 @@ def _convert_multiple_response(question, text_formatter):
 
     template_items = {
         'question_identifier': _escape_attr(question.id),
-        'question_title': 'Question',
+        'question_title': _escape_text(question.title.to_plaintext()) or 'Question',
         'points_possible': question.points,
         'assessment_question_identifierref': uuid.uuid4().hex,
         'question_text': _escape_text(text_formatter.format(question.text.to_html())),
@@ -289,7 +290,7 @@ def _convert_open_question(question, text_formatter):
 
     template_items = {
         'question_identifier': _escape_attr(question.id),
-        'question_title': 'Question',
+        'question_title': _escape_text(question.title.to_plaintext()) or 'Question',
         'points_possible': question.points,
         'assessment_question_identifierref': uuid.uuid4().hex,
         'question_text': _escape_text(text_formatter.format(question.text.to_html())),
@@ -312,7 +313,7 @@ def _convert_text_only_question(question, text_formatter):
     """
     template_items = {
         'question_identifier': _escape_attr(question.id),
-        'question_title': 'Question',
+        'question_title': _escape_text(question.title.to_plaintext()) or 'Question',
         'assessment_question_identifierref': uuid.uuid4().hex,
         'question_text': _escape_text(text_formatter.format(question.text.to_html()))
     }
@@ -591,11 +592,17 @@ def _convert_multi_option_answer(answer_id, text, text_formatter):
     Returns:
         str: the QTI formatted text
     """
-    html = _escape_text(text_formatter.format(text.to_html())).strip()
+    text_type = 'text/plain'
+    text_str = text.to_plaintext()
+
+    if isinstance(text, TextHTML):
+        text_type = 'text/html'
+        text_str = text_formatter.format(text.to_html()).strip()
+
     return f'''
         <response_label ident="{answer_id}">
             <material>
-              <mattext texttype="text/html">{html}</mattext>
+              <mattext texttype="{text_type}">{_escape_text(text_str)}</mattext>
             </material>
           </response_label>
     '''.strip()

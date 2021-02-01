@@ -123,7 +123,7 @@ class YbeConversionVisitor:
         field_list = fields(node)
 
         if isinstance(node, YbeExamElement):
-            preferred_order = ['id', 'points', 'text', 'answers', 'options', 'feedback', 'meta_data']
+            preferred_order = ['id', 'title', 'points', 'text', 'answers', 'options', 'feedback', 'meta_data']
             return sorted(field_list, key=lambda el: (preferred_order.index(el.name)
                                                       if el.name in preferred_order else len(preferred_order) + 1))
         return field_list

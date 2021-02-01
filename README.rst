@@ -94,6 +94,7 @@ An example of an ybe file with all supported questions and some file meta data i
     questions:
     - multiple_choice:
         id: q1
+        title: Questions can have a title
         points: 1
         text: Example multiple choice question.
         answers:

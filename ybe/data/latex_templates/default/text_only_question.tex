@@ -1,4 +1,8 @@
 \leavevmode \\
+\BLOCK{ if question.title is none }
 \subsection*{Information}
+\BLOCK{ else }
+\subsection*{\VAR{question.title.to_latex()}}
+\BLOCK{ endif }
 \VAR{question.text.to_latex()}
 \leavevmode \\

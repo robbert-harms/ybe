@@ -276,6 +276,7 @@ def _load_multiple_choice(question_node):
     meta_data = _qtimetadata_to_dict(question_node[0][0])
     feedbacks = _load_feedbacks(_get_nodes_ending_with(question_node, 'itemfeedback'))
     text = _load_text(question_node[1][0])
+    title = question_node.get('title')
 
     correct_answer = None
     for resprocessing_node in question_node[2]:
@@ -291,7 +292,8 @@ def _load_multiple_choice(question_node):
                                             correct=(response_id == correct_answer),
                                             hint=feedbacks.get(f'{response_id}_fb')))
 
-    return MultipleChoice(id=question_node.get('ident'), text=text, answers=answers,
+    return MultipleChoice(id=question_node.get('ident'),
+                          title=title, text=text, answers=answers,
                           points=float(meta_data['points_possible']),
                           feedback=Feedback(general=feedbacks.get('general_fb'),
                                             on_correct=feedbacks.get('correct_fb'),
@@ -310,6 +312,7 @@ def _load_multiple_response(question_node):
     meta_data = _qtimetadata_to_dict(question_node[0][0])
     feedbacks = _load_feedbacks(_get_nodes_ending_with(question_node, 'itemfeedback'))
     text = _load_text(question_node[1][0])
+    title = question_node.get('title')
     correct_answers = _load_multiple_response_correct_answers(question_node[2])
 
     answers = []
@@ -319,7 +322,8 @@ def _load_multiple_response(question_node):
                                               correct=(response_id in correct_answers),
                                               hint=feedbacks.get(f'{response_id}_fb')))
 
-    return MultipleResponse(id=question_node.get('ident'), text=text, answers=answers,
+    return MultipleResponse(id=question_node.get('ident'),
+                            title=title, text=text, answers=answers,
                             points=float(meta_data['points_possible']),
                             feedback=Feedback(general=feedbacks.get('general_fb'),
                                               on_correct=feedbacks.get('correct_fb'),
@@ -369,9 +373,10 @@ def _load_open_question(question_node):
     meta_data = _qtimetadata_to_dict(question_node[0][0])
     feedbacks = _load_feedbacks(_get_nodes_ending_with(question_node, 'itemfeedback'))
     text = _load_text(question_node[1][0])
+    title = question_node.get('title')
 
     return OpenQuestion(id=question_node.get('ident'),
-                        text=text,
+                        title=title, text=text,
                         points=float(meta_data['points_possible']),
                         feedback=Feedback(general=feedbacks.get('general_fb')))
 
@@ -410,8 +415,9 @@ def _load_text_only_question(question_node):
     Returns:
          ybe.lib.ybe_contents.TextOnlyQuestion: loaded question
     """
+    title = question_node.get('title')
     text = _load_text(question_node[1][0])
-    return TextOnly(id=question_node.get('ident'), text=text)
+    return TextOnly(id=question_node.get('ident'), text=text, title=title)
 
 
 def _load_text(material_node):
