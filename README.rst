@@ -25,6 +25,7 @@ For example, a minimal example of a multiple choice question is given by:
     questions:
     - multiple_choice:
         id: q1
+        title: Optional title
         points: 1
         text: !markdown Example *multiple* choice question.
         answers:
@@ -63,20 +64,30 @@ If you would copy the previous Ybe content into a text file named ``example.ybe`
 
 
 
-Exporting to LaTeX
-==================
-Alternatively, you could output your exam to a Latex file ready for printing:
+Exporting to other formats
+==========================
+Alternatively, you could export your Ybe exam file to other formats like Latex, Markdown or Docx/ODT:
 
 .. code-block:: python
 
-    from ybe import read_ybe_file, write_latex_file
+    from ybe import read_ybe_file, \
+        YbeToLatex, YbeToMarkdown, YbeToDocx, YbeToODT
 
     ybe_exam = read_ybe_file('example.ybe')
-    write_latex_file(ybe_exam, 'main.tex')
+
+    YbeToLatex().convert(ybe_exam, '/tmp/ybe/latex/main.tex', copy_resources=True)
+    YbeToMarkdown().convert(ybe_exam, '/tmp/ybe/markdown/main.md', copy_resources=True)
+    YbeToDocx().convert(ybe_exam, '/tmp/ybe/main.docx')
+    YbeToODT().convert(ybe_exam, '/tmp/ybe/main.odt')
+
+
+This compiles all your questions in a single Latex, Markdown or docx/odt file for printing or further processing.
+For technical minded people, this uses a Jinja2 templating system which can be fully adapted for your specific needs.
 
 
 Supported question types
 ========================
+Ybe supports multiple choice, multiple response, text-only and open/essay questions.
 An example of an ybe file with all supported questions and some file meta data is given by:
 
 .. code-block:: yaml
@@ -246,8 +257,8 @@ For example, finding all questions that yield exactly one point can be done like
 
 Importing from QTI
 ==================
-If you already have questions in `Canvas <https://canvas.instructure.com>`_ or other software packages, you could export
-these to QTI format and convert easily into an .ybe file:
+If you already have questions in `Canvas <https://canvas.instructure.com>`_ or other software packages, you can export
+these to QTI file and convert those into an .ybe file:
 
 .. code-block:: python
 
@@ -256,12 +267,8 @@ these to QTI format and convert easily into an .ybe file:
 
     ybe_exam = read_qti_zip('qti_file.zip')
 
-    # write the ybe file
-    write_ybe_file(ybe_exam, './qti_to_ybe.ybe')
-
-    # and write the images referred to in the QTI
-    copy_ybe_resources(ybe_exam, './')
-
+    # write the ybe file and the resources (images)
+    write_ybe_file(ybe_exam, './qti_to_ybe.ybe', copy_resources=True)
 
 
 *******

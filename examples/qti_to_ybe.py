@@ -17,8 +17,9 @@ with pkg_resources.path('ybe.data', 'canvas_export.zip') as path:
 # change to your preference
 output_dir = '/tmp/ybe_output/'
 
-# write the ybe file
-write_ybe_file(ybe_exam, output_dir + '/canvas_export.ybe')
+# write the ybe file and the resources separately:
+write_ybe_file(ybe_exam, output_dir + '/test1/canvas_export.ybe')
+copy_ybe_resources(ybe_exam, output_dir + '/test1/')
 
-# and write the images referred to in the QTI
-copy_ybe_resources(ybe_exam, output_dir)
+# or alternatively, in one go:
+write_ybe_file(ybe_exam, output_dir + '/test2/canvas_export.ybe', copy_resources=True)

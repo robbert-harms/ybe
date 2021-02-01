@@ -1,9 +1,9 @@
 Important:
-    - converts write to string as well
-    - update documention
-    - add html template
 
 Wish list:
+    - add html writer
+    - QTI writer to Jinja2 as well
     - cli scripts
     - gui
     - full documentation
+

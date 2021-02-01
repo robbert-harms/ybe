@@ -11,7 +11,7 @@ from datetime import date
 from dataclasses import dataclass, field, fields
 from typing import List, Union, get_type_hints
 
-from ybe.lib.data_types import TextData, PlainText, YbeResourceContext
+from ybe.lib.data_types import TextData, TextPlain, YbeResourceContext
 from ybe.lib.utils import get_default_value
 
 
@@ -71,7 +71,7 @@ class SimpleYbeNode(YbeNode):
                     continue
 
                 if type_hints[field.name] == TextData and isinstance(value, str):
-                    setattr(self, field.name, PlainText(value))
+                    setattr(self, field.name, TextPlain(value))
                     continue
 
     def get_resources(self):
@@ -120,8 +120,8 @@ class YbeExam(SimpleYbeNode):
 @dataclass
 class YbeInfo(SimpleYbeNode):
     """The header information in a Ybe file."""
-    title: TextData = field(default_factory=lambda: PlainText(''))
-    description: TextData = field(default_factory=lambda: PlainText(''))
+    title: TextData = field(default_factory=lambda: TextPlain(''))
+    description: TextData = field(default_factory=lambda: TextPlain(''))
     document_version: str = None
     date: date = None
     authors: List[str] = field(default_factory=list)
@@ -132,7 +132,7 @@ class YbeExamElement(SimpleYbeNode):
     """Base class for questions and other nodes appearing in an exam / questionnaire."""
     id: str = ''
     title: TextData = None
-    text: TextData = field(default_factory=lambda: PlainText(''))
+    text: TextData = field(default_factory=lambda: TextPlain(''))
     feedback: Feedback = field(default_factory=lambda: Feedback())
     meta_data: QuestionMetaData = field(default_factory=lambda: QuestionMetaData())
 
@@ -164,14 +164,14 @@ class TextOnly(YbeExamElement):
 
 @dataclass
 class MultipleChoiceAnswer(SimpleYbeNode):
-    text: TextData = field(default_factory=lambda: PlainText(''))
+    text: TextData = field(default_factory=lambda: TextPlain(''))
     correct: bool = False
     hint: TextData = None
 
 
 @dataclass
 class MultipleResponseAnswer(SimpleYbeNode):
-    text: TextData = field(default_factory=lambda: PlainText(''))
+    text: TextData = field(default_factory=lambda: TextPlain(''))
     correct: bool = False
     hint: TextData = None
 

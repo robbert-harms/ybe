@@ -5,6 +5,7 @@ __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
 import os
+import pathlib
 from dataclasses import fields
 from io import StringIO
 
@@ -12,19 +13,21 @@ from ruamel.yaml import YAML
 from ruamel.yaml import scalarstring
 
 from ybe.__version__ import __version__
-from ybe.lib.data_types import TextHTML, TextMarkdown, PlainText, TextData
+from ybe.lib.data_types import TextHTML, TextMarkdown, TextPlain, TextData
+from ybe.lib.utils import copy_ybe_resources
 from ybe.lib.ybe_nodes import YbeNode, MultipleChoice, MultipleResponse, OpenQuestion, TextOnly, \
     MultipleResponseAnswer, MultipleChoiceAnswer, AnalyticsQuestionMetaData, YbeExamElement
 
 
-def write_ybe_file(ybe_exam, fname, minimal=False):
+def write_ybe_file(ybe_exam, fname, minimal=True, copy_resources=False):
     """Dump the provided Ybe file object to the indicated file.
 
     Args:
         ybe_exam (ybe.lib.ybe_contents.YbeExam): the ybe file object to dump
         fname (str): the filename to dump to
-        minimal (boolean): if set to True we only print the configured options.
-            By default this flag is False, meaning we print all the available options, if needed with null placeholders.
+        minimal (boolean): if set to False we print all available fields.
+            If set to True (the default) we print only fields with non-default values.
+        copy_resources (boolean): if we copy the resources to the same directory as the output file.
     """
     if not os.path.exists(dir := os.path.dirname(fname)):
         os.makedirs(dir)
@@ -32,14 +35,18 @@ def write_ybe_file(ybe_exam, fname, minimal=False):
     with open(fname, 'w') as f:
         f.write(write_ybe_string(ybe_exam, minimal=minimal))
 
+    if copy_resources:
+        directory = pathlib.Path(fname).parent.absolute()
+        copy_ybe_resources(ybe_exam, directory)
 
-def write_ybe_string(ybe_exam, minimal=False):
+
+def write_ybe_string(ybe_exam, minimal=True):
     """Dump the provided YbeExam as a .ybe formatted string.
 
     Args:
         ybe_exam (ybe.lib.ybe_contents.YbeExam): the ybe file contents to dump
-        minimal (boolean): if set to True we only print the configured options.
-            By default this flag is False, meaning we print all the available options, if needed with null placeholders.
+        minimal (boolean): if set to False we print all available fields.
+            If set to True (the default) we print only fields with non-default values.
 
     Returns:
         str: an .ybe (Yaml) formatted string
@@ -151,7 +158,7 @@ class YbeConversionVisitor:
             return self.convert(value)
 
         if isinstance(value, TextData):
-            if isinstance(value, PlainText):
+            if isinstance(value, TextPlain):
                 if '\n' in value.text:
                     return scalarstring.PreservedScalarString(value.text)
                 return value.text

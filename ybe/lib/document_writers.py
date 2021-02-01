@@ -9,7 +9,10 @@ __licence__ = 'GPL v3'
 
 import os
 import pathlib
+import tempfile
+
 import jinja2
+import pypandoc
 
 from ybe.lib.utils import copy_ybe_resources
 from ybe.lib.ybe_nodes import MultipleChoice, OpenQuestion, TextOnly, MultipleResponse
@@ -18,12 +21,12 @@ from ybe.lib.ybe_nodes import MultipleChoice, OpenQuestion, TextOnly, MultipleRe
 class YbeConverter:
 
     def convert(self, ybe_exam, out_fname, copy_resources=False):
-        """Convert the provided ybe exam to a Latex file.
+        """Convert the provided ybe exam to a document.
 
         Args:
-            ybe_exam (ybe.lib.ybe_exam.YbeExam): the ybe file object to convert to a latex file.
-            out_fname (str): the filename of the latex file to write
-            copy_resources (boolean): if we copy the resources to the same directory as the latex file.
+            ybe_exam (ybe.lib.ybe_exam.YbeExam): the ybe file object to convert
+            out_fname (str): the filename of the file to write
+            copy_resources (boolean): if we copy the resources to the same directory as the output file.
         """
         raise NotImplementedError()
 
@@ -72,7 +75,7 @@ class Jinja2Converter(YbeConverter):
         raise NotImplementedError()
 
 
-class DefaultYbeLatexConverter(Jinja2Converter):
+class YbeToLatex(Jinja2Converter):
     """Create a Ybe to Latex conversion class.
 
     By inheriting this class, one can override template generation methods to create own templates.
@@ -127,7 +130,7 @@ class DefaultYbeLatexConverter(Jinja2Converter):
         return jinja2.PackageLoader('ybe', 'data/latex_templates/default')
 
 
-class DefaultYbeMarkdownConverter(Jinja2Converter):
+class YbeToMarkdown(Jinja2Converter):
     """Converts Ybe to a single large Markdown file."""
 
     def get_jinja2_template(self):
@@ -151,3 +154,30 @@ class DefaultYbeMarkdownConverter(Jinja2Converter):
 
     def get_jinja2_template_loader(self):
         return jinja2.PackageLoader('ybe', 'data/markdown_templates/default')
+
+
+class YbeToDocx(YbeConverter):
+
+    def convert(self, ybe_exam, out_fname, copy_resources=False):
+        if not os.path.exists(dir := os.path.dirname(out_fname)):
+            os.makedirs(dir)
+
+        md_converter = YbeToMarkdown()
+        with tempfile.TemporaryDirectory() as path:
+            md_converter.convert(ybe_exam, path + '/exam.md', copy_resources=True)
+            pypandoc.convert_file(path + '/exam.md', 'docx',
+                                  outputfile=out_fname, extra_args=['--resource-path', path])
+
+
+class YbeToODT(YbeConverter):
+
+    def convert(self, ybe_exam, out_fname, copy_resources=False):
+        if not os.path.exists(dir := os.path.dirname(out_fname)):
+            os.makedirs(dir)
+
+        md_converter = YbeToMarkdown()
+        with tempfile.TemporaryDirectory() as path:
+            md_converter.convert(ybe_exam, path + '/exam.md', copy_resources=True)
+            pypandoc.convert_file(path + '/exam.md', 'odt',
+                                  outputfile=out_fname, extra_args=['--resource-path', path])
+

@@ -5,12 +5,14 @@ __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
 
-from ybe import read_ybe_file, DefaultYbeLatexConverter, DefaultYbeMarkdownConverter
+from ybe import read_ybe_file, YbeToLatex, YbeToMarkdown, YbeToDocx, YbeToODT
+
 from importlib import resources
 
-# read the provided example Ybe.
 with resources.path('ybe.data', 'example_database.ybe') as path:
     ybe_exam = read_ybe_file(path)
 
-DefaultYbeLatexConverter().convert(ybe_exam, '/tmp/ybe/latex/main.tex', copy_resources=True)
-DefaultYbeMarkdownConverter().convert(ybe_exam, '/tmp/ybe/markdown/main.md', copy_resources=True)
+YbeToLatex().convert(ybe_exam, '/tmp/ybe/latex/main.tex', copy_resources=True)
+YbeToMarkdown().convert(ybe_exam, '/tmp/ybe/markdown/main.md', copy_resources=True)
+YbeToDocx().convert(ybe_exam, '/tmp/ybe/main.docx')
+YbeToODT().convert(ybe_exam, '/tmp/ybe/main.odt')

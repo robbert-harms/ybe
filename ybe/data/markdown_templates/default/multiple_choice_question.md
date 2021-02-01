@@ -5,7 +5,8 @@
 {% endif %}
 
 {{ question.text.to_markdown() }}
+
 {% for answer in question.answers %}
-- {{ answer.text.to_markdown() }}
+{{loop.index}}. {{ answer.text.to_markdown() }}
 {% endfor %}
 

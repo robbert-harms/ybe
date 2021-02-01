@@ -13,7 +13,7 @@ from lxml import etree
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-from ybe.lib.data_types import TextHTML, PlainText, ZipArchiveContext, DirectoryContext
+from ybe.lib.data_types import TextHTML, TextPlain, ZipArchiveContext, DirectoryContext
 from ybe.lib.ybe_nodes import YbeExam, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, \
     MultipleChoiceAnswer, MultipleResponseAnswer, TextOnly, Feedback
 
@@ -167,9 +167,9 @@ def _load_assessment_meta(xml):
     items = {}
 
     if (title_node := _get_first_node_ending_with(xml, 'title')) is not None:
-        items['title'] = TextHTML(title_node.text)
+        items['title'] = TextPlain(title_node.text)
     if (description_node := _get_first_node_ending_with(xml, 'description')) is not None:
-        items['description'] = TextHTML(description_node.text)
+        items['description'] = _parse_html_str(description_node.text)
     return items
 
 
@@ -436,36 +436,50 @@ def _load_text(material_node):
         return None
 
     if texttype == 'text/html':
-        parsed_html = BeautifulSoup(mattext.text, 'lxml')
-
-        def only_local(src):
-            return src.startswith('%24IMS-CC-FILEBASE%24/') or src.startswith('$IMS-CC-FILEBASE$/')
-
-        for img in parsed_html.find_all('img', src=only_local):
-            src = img.get('src')
-            if src.startswith('%24IMS-CC-FILEBASE%24/'):
-                src = src[len('%24IMS-CC-FILEBASE%24/'):]
-            elif src.startswith('$IMS-CC-FILEBASE$/'):
-                src = src[len('$IMS-CC-FILEBASE$/'):]
-
-            img['src'] = src[:src.find('?')]
-
-        def equations(class_):
-            if not class_:
-                return False
-            return 'equation_image' in class_
-
-        for img in parsed_html.find_all('img', class_=equations):
-            equation = img['data-equation-content']
-            eq_span = parsed_html.new_tag('span', attrs={'class': 'math inline'})
-            eq_span.string = f'\\({equation}\\)'
-            img.replaceWith(eq_span)
-
-        html_without_html_and_body_tags = "".join([str(x) for x in parsed_html.body.children])
-        return TextHTML(html_without_html_and_body_tags)
-
+        return _parse_html_str(mattext.text)
     if texttype == 'text/plain':
-        return PlainText(mattext.text)
+        return TextPlain(mattext.text)
 
     raise ValueError('No suitable text type found.')
 
+
+def _parse_html_str(text):
+    """Parse a string with HTML content into a TextHTML datatype.
+
+    This correctly converses equations and images for use in Ybe.
+
+    Args:
+        text (str): a string with HTML content
+
+    Returns:
+        TextHTML: a TextHTML node with the prepared and converted data.
+    """
+    parsed_html = BeautifulSoup(text, 'lxml')
+
+    def only_local(src):
+        return src.startswith('%24IMS-CC-FILEBASE%24/') or src.startswith('$IMS-CC-FILEBASE$/')
+
+    for img in parsed_html.find_all('img', src=only_local):
+        src = img.get('src')
+        if src.startswith('%24IMS-CC-FILEBASE%24/'):
+            src = src[len('%24IMS-CC-FILEBASE%24/'):]
+        elif src.startswith('$IMS-CC-FILEBASE$/'):
+            src = src[len('$IMS-CC-FILEBASE$/'):]
+
+        if src.find('?') >= 0:
+            src = src[:src.find('?')]
+        img['src'] = src
+
+    def equations(class_):
+        if not class_:
+            return False
+        return 'equation_image' in class_
+
+    for img in parsed_html.find_all('img', class_=equations):
+        equation = img['data-equation-content']
+        eq_span = parsed_html.new_tag('span', attrs={'class': 'math inline'})
+        eq_span.string = f'\\({equation}\\)'
+        img.replaceWith(eq_span)
+
+    html_without_html_and_body_tags = "".join([str(x) for x in parsed_html.body.children])
+    return TextHTML(html_without_html_and_body_tags)

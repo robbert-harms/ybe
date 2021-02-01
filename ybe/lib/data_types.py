@@ -71,7 +71,7 @@ class TextData:
         return f'{self.__class__.__name__}(text={repr(self.text)})'
 
 
-class PlainText(TextData):
+class TextPlain(TextData):
 
     def to_html(self):
         return self.text
