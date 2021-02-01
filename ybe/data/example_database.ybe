@@ -1,7 +1,7 @@
 ybe_version: 0.2.2
 
 info:
-    title: !html Example <b>questions</>
+    title: !html Example <b>questions</b>
     description: !markdown Some examples of *describing* questions.
     document_version: 0.1.1
     date: 2020-04-07

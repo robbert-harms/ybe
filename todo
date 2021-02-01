@@ -1,5 +1,8 @@
 Important:
-
+    - questions can have titles
+    - converts write to string as well
+    - update documention
+    - add html template
 
 Wish list:
     - cli scripts

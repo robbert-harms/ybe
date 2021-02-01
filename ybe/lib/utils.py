@@ -7,32 +7,6 @@ __licence__ = 'GPL v3'
 import os
 from dataclasses import MISSING
 
-import pypandoc
-
-
-def markdown_to_latex(text):
-    """Convert text in MarkDown format to Latex.
-
-    Args:
-        text: the text in Markdown format
-
-    Returns:
-        str: a Latex conversion of the text in this node
-    """
-    return pypandoc.convert_text(text, 'latex', 'md')
-
-
-def html_to_latex(text):
-    """Convert text in HTML format to Latex.
-
-    Args:
-        text: the text in HTML format
-
-    Returns:
-        str: a Latex conversion of the text in this node
-    """
-    return pypandoc.convert_text(text, 'latex', 'html')
-
 
 def copy_ybe_resources(ybe_exam, dirname):
     """Copy all the resource specified in the provided Ybe file object to the provided directory.

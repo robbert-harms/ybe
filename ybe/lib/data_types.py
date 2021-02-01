@@ -12,7 +12,6 @@ from dataclasses import dataclass
 
 import pypandoc
 from bs4 import BeautifulSoup
-from ybe.lib.utils import markdown_to_latex, html_to_latex
 
 
 class TextData:
@@ -33,19 +32,27 @@ class TextData:
         """
         raise NotImplementedError()
 
-    def to_plaintext(self):
-        """Convert the text in this node to plain text.
-
-        Returns:
-            str: the text in this node as plain text
-        """
-        raise NotImplementedError()
-
     def to_latex(self):
         """Convert the text in this node to Latex and return that.
 
         Returns:
             str: a Latex conversion of the text in this node
+        """
+        raise NotImplementedError()
+
+    def to_markdown(self):
+        """Convert the text in this node to Markdown and return that.
+
+        Returns:
+            str: a Markdown conversion of the text in this node
+        """
+        raise NotImplementedError()
+
+    def to_plaintext(self):
+        """Convert the text in this node to plain text.
+
+        Returns:
+            str: the text in this node as plain text
         """
         raise NotImplementedError()
 
@@ -70,6 +77,9 @@ class PlainText(TextData):
         return self.text
 
     def to_latex(self):
+        return self.text
+
+    def to_markdown(self):
         return self.text
 
     def to_plaintext(self):
@@ -97,7 +107,10 @@ class TextHTML(TextData):
         return self.text
 
     def to_latex(self):
-        return html_to_latex(self.text)
+        return pypandoc.convert_text(self.text, 'latex', 'html')
+
+    def to_markdown(self):
+        return pypandoc.convert_text(self.text, 'md', 'html')
 
     def to_plaintext(self):
         parsed = BeautifulSoup(self.text, 'lxml')
@@ -133,7 +146,10 @@ class TextMarkdown(TextData):
         return pypandoc.convert_text(self.text, 'html', 'md', extra_args=['--mathjax'])
 
     def to_latex(self):
-        return markdown_to_latex(self.text)
+        return pypandoc.convert_text(self.text, 'latex', 'md')
+
+    def to_markdown(self):
+        return self.text
 
     def to_plaintext(self):
         return self.text

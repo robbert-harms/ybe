@@ -44,9 +44,12 @@
 
 
 \begin{document}
-\BLOCK{ include 'header.tex' }
 
-\VAR{introduction or ''}
+\setlength{\headsep}{5pt}
+\centerline{\fontsize{25}{25pt}{\bfseries \VAR{exam.info.title.to_latex()}}}
+\vspace*{1.6em}
+
+\VAR{exam.info.description.to_latex()}
 
 \BLOCK{ set real_question_count = namespace(value=0) }
 \BLOCK{ for question in exam.questions }

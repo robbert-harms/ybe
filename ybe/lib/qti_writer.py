@@ -173,7 +173,7 @@ def _write_questions_data(ybe_exam, dirname, assessment_identifier, text_formatt
         text_formatter (TextFormatter): specific actions to format the HTML text for use in the QTI.
     """
     template_items = {
-        'title': _escape_attr(text_formatter.format(ybe_exam.info.title.to_html())),
+        'title': _escape_attr(ybe_exam.info.title.to_plaintext()),
         'assessment_identifier': assessment_identifier,
         'questions': '\n'.join(_get_questions(ybe_exam, text_formatter)),
     }
@@ -332,7 +332,7 @@ def _write_qti_manifest(ybe_exam, dirname, assessment_identifier, dependency_ide
     """
     template_items = {
         'manifest_identifier': uuid.uuid4().hex,
-        'title': _escape_attr(text_formatter.format(ybe_exam.info.title.to_html())),
+        'title': _escape_attr(ybe_exam.info.title.to_plaintext()),
         'date': ybe_exam.info.date.strftime('%Y-%m-%d'),
         'assessment_identifier': assessment_identifier,
         'dependency_identifier': dependency_identifier,
