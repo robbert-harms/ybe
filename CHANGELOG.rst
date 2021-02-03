@@ -2,6 +2,19 @@
 Changelog
 *********
 
+v0.3.2 (2021-02-03)
+===================
+
+Added
+-----
+- Adds Docx, ODT, Markdown and HTML document writer.
+
+Changed
+-------
+- Removed support for additional fields in the document writers.
+- Refactored the QTI writer.
+
+
 v0.3.1 (2021-01-30)
 ===================
 
