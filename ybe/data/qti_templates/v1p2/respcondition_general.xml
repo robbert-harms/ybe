@@ -1,0 +1,8 @@
+<respcondition continue="Yes">
+    <conditionvar>
+        <other/>
+    </conditionvar>
+    {% if display_feedback %}
+        <displayfeedback feedbacktype="Response" linkrefid="general_fb"/>
+    {% endif %}
+</respcondition>

@@ -1,0 +1,3 @@
+<resource identifier="{{ resource_id }}" type="webcontent" href="{{ resource_path }}">
+    <file href="{{ resource_path }}"/>
+</resource>

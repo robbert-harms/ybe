@@ -1,0 +1,6 @@
+<respcondition continue="Yes">
+    <conditionvar>
+        <varequal respident="response1">{{answer_id}}</varequal>
+    </conditionvar>
+    <displayfeedback feedbacktype="Response" linkrefid="{{answer_id}}_fb"/>
+</respcondition>

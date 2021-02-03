@@ -17,5 +17,4 @@ from ybe.__version__ import VERSION, VERSION_STATUS, __version__
 from ybe.lib.ybe_writer import write_ybe_string, write_ybe_file
 from ybe.lib.ybe_reader import read_ybe_string, read_ybe_file
 from ybe.lib.qti_reader import read_qti_dir, read_qti_zip
-from ybe.lib.qti_writer import write_qti_dir, write_qti_zip
-from ybe.lib.document_writers import YbeToLatex, YbeToMarkdown, YbeToDocx, YbeToODT, YbeToHTML
+from ybe.lib.document_writers import YbeToLatex, YbeToMarkdown, YbeToDocx, YbeToODT, YbeToHTML, YbeToQTI_1p2

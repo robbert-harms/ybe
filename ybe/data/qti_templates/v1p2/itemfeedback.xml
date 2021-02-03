@@ -1,0 +1,7 @@
+<itemfeedback ident="{{ feedback_id }}">
+    <flow_mat>
+        <material>
+            {% include 'mattext.xml' %}
+        </material>
+    </flow_mat>
+</itemfeedback>

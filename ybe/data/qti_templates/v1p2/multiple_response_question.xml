@@ -1,0 +1,47 @@
+<item ident="{{ question.id }}" title="{{ question.title.to_plaintext() if question.title else 'Question' }}">
+    <itemmetadata>
+        <qtimetadata>
+            <qtimetadatafield>
+                <fieldlabel>question_type</fieldlabel>
+                <fieldentry>multiple_answers_question</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+                <fieldlabel>points_possible</fieldlabel>
+                <fieldentry>{{ question.points | round(2) }}</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+                <fieldlabel>original_answer_ids</fieldlabel>
+                <fieldentry>{{ original_answer_ids }}</fieldentry>
+            </qtimetadatafield>
+            <qtimetadatafield>
+                <fieldlabel>assessment_question_identifierref</fieldlabel>
+                <fieldentry>{{ assessment_question_identifierref }}</fieldentry>
+            </qtimetadatafield>
+        </qtimetadata>
+    </itemmetadata>
+    <presentation>
+        <material>
+            {% with text=question.text %}
+                {% include 'mattext.xml' %}
+            {% endwith %}
+        </material>
+        <response_lid ident="response1" rcardinality="Multiple">
+            <render_choice>
+                {% for answer_id, answer in answer_items %}
+                    {% include 'answer_item.xml' %}
+                {% endfor %}
+            </render_choice>
+        </response_lid>
+    </presentation>
+    <resprocessing>
+        <outcomes>
+            <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
+        </outcomes>
+        {% for respcondition in respconditions %}
+            {{ respcondition | safe }}
+        {% endfor %}
+    </resprocessing>
+    {% for feedback_item in feedback_items %}
+        {{ feedback_item | safe }}
+    {% endfor %}
+</item>

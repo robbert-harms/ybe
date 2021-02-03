@@ -1,0 +1,7 @@
+<response_label ident="{{ answer_id }}">
+    <material>
+        {% with text=answer.text %}
+            {% include 'mattext.xml' %}
+        {% endwith %}
+    </material>
+</response_label>

@@ -26,7 +26,7 @@ questions:
         - answer:
             text: Fourth answer
             correct: true
-            hint: !html <b>This question also has a hint</b>.
+            hint: !html <b>This answer also has a hint</b>.
 
 - open:
     id: '#2003_2'

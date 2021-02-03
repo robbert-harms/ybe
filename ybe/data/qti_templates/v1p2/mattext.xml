@@ -1,0 +1,7 @@
+{% if text is none %}
+    <mattext texttype="text/plain"></mattext>
+{% elif text is plaintext %}
+    <mattext texttype="text/plain">{{ text.to_plaintext() }}</mattext>
+{% else %}
+    <mattext texttype="text/html">{{ preprocess_html(text.to_html()) }}</mattext>
+{% endif %}

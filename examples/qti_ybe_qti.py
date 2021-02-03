@@ -6,8 +6,7 @@ __licence__ = 'GPL v3'
 
 
 import importlib.resources as pkg_resources
-from ybe import read_qti_zip, write_ybe_file, read_ybe_file, write_qti_zip
-from ybe.lib.qti_writer import ConvertCanvasEquations
+from ybe import read_qti_zip, write_ybe_file, read_ybe_file, YbeToQTI_1p2
 from ybe.lib.utils import copy_ybe_resources
 
 
@@ -19,12 +18,7 @@ def qti_to_ybe(qti_path, output_path):
 
 def ybe_to_qti(ybe_path, output_path, for_canvas=True):
     ybe_exam = read_ybe_file(ybe_path)
-
-    if for_canvas:
-        # Write a QTI with the equations converted to the way Canvas (https://canvas.instructure.com) likes it.
-        write_qti_zip(ybe_exam, output_path, text_formatter=ConvertCanvasEquations())
-    else:
-        write_qti_zip(ybe_exam, output_path)
+    YbeToQTI_1p2(convert_canvas_equations=for_canvas).convert(ybe_exam, output_path)
 
 
 output_dir = '/tmp/ybe_test/'

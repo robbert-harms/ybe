@@ -51,17 +51,12 @@ If you would copy the previous Ybe content into a text file named ``example.ybe`
 
 .. code-block:: python
 
-    from ybe import read_ybe_file
-    from ybe.lib.qti_writer import \
-        write_qti_zip, \
-        ConvertCanvasEquations
+    from ybe import read_ybe_file, YbeToQTI_1p2
 
     ybe_exam = read_ybe_file('example.ybe')
 
-    # QTI with Canvas style equations
-    write_qti_zip(ybe_exam, 'qti_canvas.zip',
-                  text_formatter=ConvertCanvasEquations())
-
+    # QTI v1.2 for use in Canvas
+    YbeToQTI_1p2(convert_canvas_equations=True).convert(ybe_exam, 'qti_canvas.zip')
 
 
 Exporting to other formats

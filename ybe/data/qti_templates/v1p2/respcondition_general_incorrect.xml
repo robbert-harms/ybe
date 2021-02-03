@@ -1,0 +1,6 @@
+<respcondition continue="Yes">
+    <conditionvar>
+        <other/>
+    </conditionvar>
+    <displayfeedback feedbacktype="Response" linkrefid="general_incorrect_fb"/>
+</respcondition>
