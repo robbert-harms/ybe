@@ -211,7 +211,7 @@ class YbeToODT(YbeConverter):
                                   outputfile=out_fname, extra_args=['--resource-path', path])
 
 
-class YbeToQTI_1p2(YbeConverter):
+class YbeToQTI_v1p2(YbeConverter):
 
     def __init__(self, convert_canvas_equations=False):
         """Create the Ybe to QTI v1.2 converter.
