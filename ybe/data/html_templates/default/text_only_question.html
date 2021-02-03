@@ -1,0 +1,8 @@
+{% if question.title is none %}
+<h2>Information</h2>
+{% else %}
+<h2>{{ question.title.to_html() }}</h2>
+{% endif %}
+
+{{ question.text.to_html() }}
+

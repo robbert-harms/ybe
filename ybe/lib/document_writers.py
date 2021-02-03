@@ -35,6 +35,15 @@ class Jinja2Converter(YbeConverter):
     """Convert an Ybe to a single large document using a Jinja2 environment.
 
     This is meant to convert Ybe to files supporting single large documents, like Latex, Markdown and HTML.
+
+    By inheriting this class, one can override template generation methods to create own templates.
+
+    For example, for loading your own templates::
+
+        class ConverterWithOwnTemplate(Jinja2Converter):
+            def get_jinja2_template_loader():
+                default_loader = super().get_jinja2_template_loader()
+                return ChoiceLoader([FileSystemLoader('/tmp/my_template/'), default_loader]))
     """
 
     def convert(self, ybe_exam, out_fname, copy_resources=False):
@@ -76,18 +85,7 @@ class Jinja2Converter(YbeConverter):
 
 
 class YbeToLatex(Jinja2Converter):
-    """Create a Ybe to Latex conversion class.
-
-    By inheriting this class, one can override template generation methods to create own templates.
-
-    For example, for loading your own templates::
-
-        class ConverterWithOwnTemplate(Jinja2YbeLatexConverter):
-
-            def get_jinja2_template_loader():
-                default_loader = super().get_jinja2_template_loader()
-                return ChoiceLoader([FileSystemLoader('/tmp/my_template/'), default_loader]))
-    """
+    """Ybe to Latex conversion."""
 
     def get_jinja2_template(self):
         return self.get_jinja2_environment().get_template('exam.tex')
@@ -131,7 +129,7 @@ class YbeToLatex(Jinja2Converter):
 
 
 class YbeToMarkdown(Jinja2Converter):
-    """Converts Ybe to a single large Markdown file."""
+    """Converts Ybe to a single Markdown file."""
 
     def get_jinja2_template(self):
         return self.get_jinja2_environment().get_template('exam.md')
@@ -154,6 +152,32 @@ class YbeToMarkdown(Jinja2Converter):
 
     def get_jinja2_template_loader(self):
         return jinja2.PackageLoader('ybe', 'data/markdown_templates/default')
+
+
+class YbeToHTML(Jinja2Converter):
+    """Converts Ybe to a single HTML file."""
+
+    def get_jinja2_template(self):
+        return self.get_jinja2_environment().get_template('exam.html')
+
+    def get_jinja2_environment(self):
+        default_kwargs = dict(
+            trim_blocks=True,
+            autoescape=False,
+            lstrip_blocks=True,
+            loader=self.get_jinja2_template_loader())
+
+        env = jinja2.Environment(**default_kwargs)
+
+        env.tests['multiple_choice'] = lambda question: isinstance(question, MultipleChoice)
+        env.tests['open'] = lambda question: isinstance(question, OpenQuestion)
+        env.tests['text_only'] = lambda question: isinstance(question, TextOnly)
+        env.tests['multiple_response'] = lambda question: isinstance(question, MultipleResponse)
+
+        return env
+
+    def get_jinja2_template_loader(self):
+        return jinja2.PackageLoader('ybe', 'data/html_templates/default')
 
 
 class YbeToDocx(YbeConverter):

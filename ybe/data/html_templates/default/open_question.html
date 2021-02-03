@@ -1,0 +1,11 @@
+{% if question.title is none %}
+<h2>Question {{ question_index }} <span style="color: gray">(points: {{ question.points }})</span></h2>
+{% else %}
+<h2>Question {{ question_index }}: {{ question.title.to_html() }} <span style="color: gray">(points: {{ question.points }})</span></h2>
+{% endif %}
+
+{{ question.text.to_html() }}
+<div class="answer_area">
+<textarea id="{{ question.id }}" rows="4" style="width: 100%">
+</textarea>
+</div>

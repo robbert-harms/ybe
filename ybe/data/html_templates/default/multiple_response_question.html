@@ -1,0 +1,17 @@
+{% if question.title is none %}
+<h2>Question {{ question_index }} <span style="color: gray">(points: {{ question.points }})</span></h2>
+{% else %}
+<h2>Question {{ question_index }}: {{ question.title.to_html() }} <span style="color: gray">(points: {{ question.points }})</span></h2>
+{% endif %}
+
+{{ question.text.to_html() }}
+
+<div class="answer_area">
+{% for answer in question.answers %}
+    <div>
+        <input type="checkbox" name="multiple_choice" value="{{ loop.index }}" id="{{ question.id }}_{{ loop.index }}" />
+        <label for="{{ question.id }}_{{ loop.index }}">{{loop.index}}. {{ answer.text.to_html() }}</label>
+    </div>
+{% endfor %}
+</div>
+

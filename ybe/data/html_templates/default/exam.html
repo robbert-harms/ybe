@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        h1 {margin-bottom:10px;}
+        h2 {margin-top:40px; margin-bottom:10px;}
+        p {margin-top:5px; margin-bottom:10px;}
+        .answer_area {margin-top:10px;}
+    </style>
+</head>
+<body>
+    <h1>{{ exam.info.title.to_html() }}</h1>
+
+    {{ exam.info.description.to_html() }}
+
+{% set real_question_count = namespace(value=0) %}
+{% for question in exam.questions %}
+    {% if question is multiple_choice %}
+        {% set real_question_count.value = real_question_count.value + 1 %}
+		{% with question=question, question_index=real_question_count.value %}
+			{% include 'multiple_choice_question.html' %}
+		{% endwith %}
+	{% elif question is open %}
+        {% set real_question_count.value = real_question_count.value + 1 %}
+		{% with question=question, question_index=real_question_count.value %}
+			{% include 'open_question.html' %}
+		{% endwith %}
+	{% elif question is multiple_response %}
+        {% set real_question_count.value = real_question_count.value + 1 %}
+		{% with question=question, question_index=real_question_count.value %}
+			{% include 'multiple_response_question.html' %}
+		{% endwith %}
+	{% elif question is text_only %}
+		{% with question=question, question_index=loop.index %}
+			{% include 'text_only_question.html' %}
+		{% endwith %}
+	{% endif %}
+{% endfor %}
+
+</body>
+</html>

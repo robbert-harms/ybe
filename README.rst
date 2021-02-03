@@ -66,22 +66,23 @@ If you would copy the previous Ybe content into a text file named ``example.ybe`
 
 Exporting to other formats
 ==========================
-Alternatively, you could export your Ybe exam file to other formats like Latex, Markdown or Docx/ODT:
+Alternatively, you could export your Ybe exam file to other formats like Latex, Markdown, HTML or Docx/ODT:
 
 .. code-block:: python
 
     from ybe import read_ybe_file, \
-        YbeToLatex, YbeToMarkdown, YbeToDocx, YbeToODT
+        YbeToLatex, YbeToMarkdown, YbeToDocx, YbeToODT, YbeToHTML
 
     ybe_exam = read_ybe_file('example.ybe')
 
     YbeToLatex().convert(ybe_exam, '/tmp/ybe/latex/main.tex', copy_resources=True)
     YbeToMarkdown().convert(ybe_exam, '/tmp/ybe/markdown/main.md', copy_resources=True)
+    YbeToHTML().convert(ybe_exam, '/tmp/ybe/html/main.html', copy_resources=True)
     YbeToDocx().convert(ybe_exam, '/tmp/ybe/main.docx')
     YbeToODT().convert(ybe_exam, '/tmp/ybe/main.odt')
 
 
-This compiles all your questions in a single Latex, Markdown or docx/odt file for printing or further processing.
+This compiles all your questions in a single Latex, Markdown, HTML or docx/odt file for printing or further processing.
 For technical minded people, this uses a Jinja2 templating system which can be fully adapted for your specific needs.
 
 
@@ -320,3 +321,12 @@ For other Linux distributions the setup is typically similar, install Python 3.8
 
 * Install Anaconda Python 3.8
 * Open an Anaconda shell and type: ``pip install ybe``
+
+
+************
+Contributors
+************
+* Software by Dr. Harms
+* Commissioned by Asst.Prof.Dr.Ir. S. Schoenmakers, Eindhoven University.
+
+
