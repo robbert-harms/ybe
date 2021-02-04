@@ -130,7 +130,7 @@ class YbeToLatex(Jinja2Converter):
         Returns:
             jinja2.PackageLoader: the loader for loading the template.
         """
-        return jinja2.PackageLoader('ybe', 'data/latex_templates/default')
+        return jinja2.PackageLoader('ybe', 'data/conversion_templates/latex/default')
 
 
 class YbeToMarkdown(Jinja2Converter):
@@ -156,7 +156,7 @@ class YbeToMarkdown(Jinja2Converter):
         return env
 
     def get_jinja2_template_loader(self):
-        return jinja2.PackageLoader('ybe', 'data/markdown_templates/default')
+        return jinja2.PackageLoader('ybe', 'data/conversion_templates/markdown/default')
 
 
 class YbeToHTML(Jinja2Converter):
@@ -182,7 +182,7 @@ class YbeToHTML(Jinja2Converter):
         return env
 
     def get_jinja2_template_loader(self):
-        return jinja2.PackageLoader('ybe', 'data/html_templates/default')
+        return jinja2.PackageLoader('ybe', 'data/conversion_templates/html/default')
 
 
 class YbeToDocx(YbeConverter):
@@ -234,7 +234,7 @@ class YbeToQTI_v1p2(YbeConverter):
             trim_blocks=True,
             autoescape=True,
             lstrip_blocks=True,
-            loader=jinja2.PackageLoader('ybe', 'data/qti_templates/v1p2'))
+            loader=jinja2.PackageLoader('ybe', 'data/conversion_templates/qti/v1p2'))
 
         env = jinja2.Environment(**default_kwargs)
         env.tests['multiple_choice'] = lambda question: isinstance(question, MultipleChoice)
