@@ -21,9 +21,11 @@
     </itemmetadata>
     <presentation>
         <material>
-            {% with text=question.text %}
-                {% include 'mattext.xml' %}
-            {% endwith %}
+            {% filter indent(12, first=True) -%}
+                {% with text=question.text %}
+                    {% include 'mattext.xml' %}
+                {% endwith %}
+            {%- endfilter %}
         </material>
     </presentation>
 </item>

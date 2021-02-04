@@ -17,3 +17,4 @@ output_dir = '/tmp/qti_output/'
 
 # Write a QTI with the equations converted to the way Canvas (https://canvas.instructure.com) likes it.
 YbeToQTI_v1p2(convert_canvas_equations=True).convert(ybe_exam, output_dir + 'new.zip')
+YbeToQTI_v1p2(convert_canvas_equations=True).convert(ybe_exam, output_dir + 'new')

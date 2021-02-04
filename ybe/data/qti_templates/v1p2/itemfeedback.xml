@@ -1,7 +1,9 @@
 <itemfeedback ident="{{ feedback_id }}">
     <flow_mat>
         <material>
-            {% include 'mattext.xml' %}
+            {% filter indent(12, first=True) -%}
+                {% include 'mattext.xml' %}
+            {%- endfilter %}
         </material>
     </flow_mat>
 </itemfeedback>

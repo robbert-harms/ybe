@@ -385,21 +385,12 @@ class YbeToQTI_v1p2(YbeConverter):
             str: XML string with the question information
         """
         answer_ids = [uuid.uuid4().hex[0:6] for _ in question.answers]
-        feedback_items = self._convert_feedback_items(question.feedback)
-
-        answer_items = []
-        for answer_id, answer in zip(answer_ids, question.answers):
-            answer_items.append((answer_id, answer))
-            if answer.hint:
-                feedback_items.append(self._convert_feedback(f'{answer_id}_fb', answer.hint))
 
         template_items = {
             'question': question,
             'assessment_question_identifierref': uuid.uuid4().hex,
-            'original_answer_ids': ','.join(answer_ids),
-            'answer_items': answer_items,
+            'answer_ids': answer_ids,
             'respconditions': self._create_multiple_choice_respconditions(question, answer_ids),
-            'feedback_items': feedback_items
         }
         template = self.jinja2_env.get_template('multiple_choice_question.xml')
         return template.render(**template_items)
@@ -415,21 +406,12 @@ class YbeToQTI_v1p2(YbeConverter):
             str: XML string with the question information
         """
         answer_ids = [uuid.uuid4().hex[0:6] for _ in question.answers]
-        feedback_items = self._convert_feedback_items(question.feedback)
-
-        answer_items = []
-        for answer_id, answer in zip(answer_ids, question.answers):
-            answer_items.append((answer_id, answer))
-            if answer.hint:
-                feedback_items.append(self._convert_feedback(f'{answer_id}_fb', answer.hint))
 
         template_items = {
             'question': question,
             'assessment_question_identifierref': uuid.uuid4().hex,
-            'original_answer_ids': ','.join(answer_ids),
-            'answer_items': answer_items,
+            'answer_ids': answer_ids,
             'respconditions': self._create_multiple_response_respconditions(question, answer_ids),
-            'feedback_items': feedback_items
         }
         template = self.jinja2_env.get_template('multiple_response_question.xml')
         return template.render(**template_items)
@@ -443,19 +425,9 @@ class YbeToQTI_v1p2(YbeConverter):
         Returns:
             str: XML string with the question information
         """
-        feedback_items = self._convert_feedback_items(question.feedback, allowed_items=['general'])
-
-        respconditions = []
-        if question.feedback.general is not None:
-            respconditions.append(self.jinja2_env.get_template('respcondition_general.xml').render(
-                display_feedback=True))
-        respconditions.append('''<respcondition continue="No"><conditionvar><other/></conditionvar></respcondition>''')
-
         template_items = {
             'question': question,
             'assessment_question_identifierref': uuid.uuid4().hex,
-            'respconditions': respconditions,
-            'feedback_items': feedback_items
         }
         template = self.jinja2_env.get_template('open_question.xml')
         return template.render(**template_items)
@@ -565,42 +537,6 @@ class YbeToQTI_v1p2(YbeConverter):
             respconditions.append(self.jinja2_env.get_template('respcondition_general_incorrect.xml').render())
 
         return respconditions
-
-    def _convert_feedback_items(self, feedback, allowed_items=None):
-        """Convert the feedback items of a question.
-
-        Args:
-            feedback (Feedback): the feedback data
-            allowed_items (list): the list of allowed feedback items
-
-        Returns:
-            List[str]: list with QTI elements for the feedback
-        """
-        allowed_items = allowed_items or ['general', 'on_correct', 'on_incorrect']
-
-        feedback_items = []
-        if feedback.general and 'general' in allowed_items:
-            feedback_items.append(self._convert_feedback('general_fb', feedback.general))
-        if feedback.on_correct and 'on_correct' in allowed_items:
-            feedback_items.append(self._convert_feedback('correct_fb', feedback.on_correct))
-        if feedback.on_incorrect and 'on_incorrect' in allowed_items:
-            feedback_items.append(self._convert_feedback('general_incorrect_fb', feedback.on_incorrect))
-
-        return feedback_items
-
-    def _convert_feedback(self, feedback_id, text):
-        """Convert the feedback items of the provided question into QTI format.
-
-        This will convert the general feedback
-
-        Args:
-            feedback_id (str): the id of the feedback
-            text (TextData): the data element containing the text to write
-
-        Returns:
-            str: XML string with the question information
-        """
-        return self.jinja2_env.get_template('itemfeedback.xml').render(feedback_id=feedback_id, text=text)
 
     @staticmethod
     def format_canvas_equations(text):

@@ -1,7 +1,9 @@
 <response_label ident="{{ answer_id }}">
     <material>
-        {% with text=answer.text %}
-            {% include 'mattext.xml' %}
-        {% endwith %}
+        {% filter indent(8, first=True) -%}
+            {% with text=answer.text %}
+                {% include 'mattext.xml' %}
+            {% endwith %}
+        {%- endfilter %}
     </material>
 </response_label>

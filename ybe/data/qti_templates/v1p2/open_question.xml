@@ -21,9 +21,11 @@
     </itemmetadata>
     <presentation>
         <material>
-            {% with text=question.text %}
-                {% include 'mattext.xml' %}
-            {% endwith %}
+            {% filter indent(12, first=True) -%}
+                {% with text=question.text %}
+                    {% include 'mattext.xml' %}
+                {% endwith %}
+            {%- endfilter %}
         </material>
         <response_str ident="response1" rcardinality="Single">
             <render_fib>
@@ -35,11 +37,22 @@
         <outcomes>
             <decvar maxvalue="100" minvalue="0" varname="SCORE" vartype="Decimal"/>
         </outcomes>
-        {% for respcondition in respconditions %}
-            {{ respcondition | safe }}
-        {% endfor %}
+        {% filter indent(8, first=True) -%}
+            {% if question.feedback.general %}
+                {% include 'respcondition_general.xml' %}
+
+            {% else %}
+                {% include 'respcondition_no_operation.xml' %}
+
+            {% endif %}
+        {%- endfilter %}
     </resprocessing>
-    {% for feedback_item in feedback_items %}
-        {{ feedback_item | safe }}
-    {% endfor %}
+    {% filter indent(4, first=True) -%}
+        {% if question.feedback.general %}
+            {% with feedback_id='general_fb', text=question.feedback.general %}
+                {% include 'itemfeedback.xml' %}
+
+            {% endwith %}
+        {% endif %}
+    {%- endfilter %}
 </item>

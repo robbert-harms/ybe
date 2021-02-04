@@ -2,7 +2,5 @@
     <conditionvar>
         <other/>
     </conditionvar>
-    {% if display_feedback %}
-        <displayfeedback feedbacktype="Response" linkrefid="general_fb"/>
-    {% endif %}
+    <displayfeedback feedbacktype="Response" linkrefid="general_fb"/>
 </respcondition>

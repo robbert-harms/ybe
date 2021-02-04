@@ -9,7 +9,7 @@
         </qtimetadata>
         <section ident="root_section">
 {% for question in converted_questions %}
-    {{ question | safe }}
+{{ question | safe }}
 {% endfor %}
         </section>
     </assessment>
