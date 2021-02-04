@@ -155,7 +155,7 @@ class YbeConversionVisitor:
             return self.convert(value)
 
         if isinstance(value, TextData):
-            if isinstance(value, TextPlain):
+            if value.is_plaintext():
                 if '\n' in value.text:
                     return scalarstring.PreservedScalarString(value.text)
                 return value.text

@@ -242,8 +242,6 @@ class YbeToQTI_v1p2(YbeConverter):
         env.tests['text_only'] = lambda question: isinstance(question, TextOnly)
         env.tests['multiple_response'] = lambda question: isinstance(question, MultipleResponse)
 
-        env.tests['plaintext'] = lambda text: isinstance(text, TextPlain)
-
         env.globals['preprocess_html'] = self._preprocess_html
         env.globals['multiple_choice_question'] = self._convert_multiple_choice
 
@@ -336,7 +334,7 @@ class YbeToQTI_v1p2(YbeConverter):
             dirname (str): the directory to write the manifest (``imsmanifest.xml``) to.
             assessment_identifier (str): UUID of the assessment
         """
-        if isinstance(ybe_exam.info.description, TextPlain):
+        if ybe_exam.info.description.is_plaintext():
             description = ybe_exam.info.description.to_plaintext()
         else:
             description = self._preprocess_html(ybe_exam.info.description.to_html())

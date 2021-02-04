@@ -24,6 +24,14 @@ class TextData:
         """
         self.text = text
 
+    def is_plaintext(self):
+        """Check if this node contains only plaintext data.
+
+        Returns:
+            bool: If this node contains text without markup, i.e. plain text
+        """
+        raise NotImplementedError()
+
     def to_html(self):
         """Convert the text in this node to HTML and return that.
 
@@ -73,6 +81,9 @@ class TextData:
 
 class TextPlain(TextData):
 
+    def is_plaintext(self):
+        return True
+
     def to_html(self):
         return self.text
 
@@ -102,6 +113,9 @@ class TextHTML(TextData):
     @classmethod
     def from_yaml(cls, constructor, node):
         return cls(node.value)
+
+    def is_plaintext(self):
+        return False
 
     def to_html(self):
         return self.text
@@ -141,6 +155,9 @@ class TextMarkdown(TextData):
     @classmethod
     def from_yaml(cls, constructor, node):
         return cls(node.value)
+
+    def is_plaintext(self):
+        return False
 
     def to_html(self):
         return pypandoc.convert_text(self.text, 'html', 'md', extra_args=['--mathjax'])
