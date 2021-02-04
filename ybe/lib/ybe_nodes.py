@@ -144,12 +144,12 @@ class Question(YbeExamElement):
 
 @dataclass
 class MultipleChoice(Question):
-    answers: List[MultipleChoiceAnswer] = field(default_factory=list)
+    answers: List[AnswerOption] = field(default_factory=list)
 
 
 @dataclass
 class MultipleResponse(Question):
-    answers: List[MultipleResponseAnswer] = field(default_factory=list)
+    answers: List[AnswerOption] = field(default_factory=list)
 
 
 @dataclass
@@ -163,14 +163,7 @@ class TextOnly(YbeExamElement):
 
 
 @dataclass
-class MultipleChoiceAnswer(SimpleYbeNode):
-    text: TextData = field(default_factory=lambda: TextPlain(''))
-    correct: bool = False
-    hint: TextData = None
-
-
-@dataclass
-class MultipleResponseAnswer(SimpleYbeNode):
+class AnswerOption(SimpleYbeNode):
     text: TextData = field(default_factory=lambda: TextPlain(''))
     correct: bool = False
     hint: TextData = None

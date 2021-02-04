@@ -12,8 +12,7 @@ from ruamel.yaml import YAML
 
 from ybe.lib.data_types import TextHTML, TextMarkdown, DirectoryContext
 from ybe.lib.errors import YbeLoadingError
-from ybe.lib.ybe_nodes import YbeExam, MultipleChoice, OpenQuestion, MultipleChoiceAnswer, \
-    MultipleResponse, TextOnly, MultipleResponseAnswer
+from ybe.lib.ybe_nodes import YbeExam, MultipleChoice, OpenQuestion, MultipleResponse, TextOnly, AnswerOption
 
 
 def read_ybe_file(fname):
@@ -139,12 +138,12 @@ class YbeLoader:
 
     def _load_field_MultipleChoice_answers(self, parent_node, field, data):
         if 'answers' in data:
-            return ResultValue([self.load(MultipleChoiceAnswer, el['answer']) for el in data['answers']])
+            return ResultValue([self.load(AnswerOption, el['answer']) for el in data['answers']])
         return ResultMissing()
 
     def _load_field_MultipleResponse_answers(self, parent_node, field, data):
         if 'answers' in data:
-            return ResultValue([self.load(MultipleResponseAnswer, el['answer']) for el in data['answers']])
+            return ResultValue([self.load(AnswerOption, el['answer']) for el in data['answers']])
         return ResultMissing()
 
 

@@ -15,7 +15,7 @@ from datetime import datetime
 
 from ybe.lib.data_types import TextHTML, TextPlain, ZipArchiveContext, DirectoryContext
 from ybe.lib.ybe_nodes import YbeExam, YbeInfo, MultipleChoice, MultipleResponse, OpenQuestion, \
-    MultipleChoiceAnswer, MultipleResponseAnswer, TextOnly, Feedback
+    TextOnly, Feedback, AnswerOption
 
 
 def read_qti_zip(zip_file):
@@ -288,9 +288,9 @@ def _load_multiple_choice(question_node):
     answers = []
     for response_label in question_node[1][1][0]:
         response_id = response_label.get('ident')
-        answers.append(MultipleChoiceAnswer(text=_load_text(response_label[0]),
-                                            correct=(response_id == correct_answer),
-                                            hint=feedbacks.get(f'{response_id}_fb')))
+        answers.append(AnswerOption(text=_load_text(response_label[0]),
+                                    correct=(response_id == correct_answer),
+                                    hint=feedbacks.get(f'{response_id}_fb')))
 
     return MultipleChoice(id=question_node.get('ident'),
                           title=title, text=text, answers=answers,
@@ -318,9 +318,9 @@ def _load_multiple_response(question_node):
     answers = []
     for response_label in question_node[1][1][0]:
         response_id = response_label.get('ident')
-        answers.append(MultipleResponseAnswer(text=_load_text(response_label[0]),
-                                              correct=(response_id in correct_answers),
-                                              hint=feedbacks.get(f'{response_id}_fb')))
+        answers.append(AnswerOption(text=_load_text(response_label[0]),
+                                    correct=(response_id in correct_answers),
+                                    hint=feedbacks.get(f'{response_id}_fb')))
 
     return MultipleResponse(id=question_node.get('ident'),
                             title=title, text=text, answers=answers,

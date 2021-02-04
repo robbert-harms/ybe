@@ -16,7 +16,7 @@ from ybe.__version__ import __version__
 from ybe.lib.data_types import TextHTML, TextMarkdown, TextPlain, TextData
 from ybe.lib.utils import copy_ybe_resources
 from ybe.lib.ybe_nodes import YbeNode, MultipleChoice, MultipleResponse, OpenQuestion, TextOnly, \
-    MultipleResponseAnswer, MultipleChoiceAnswer, AnalyticsQuestionMetaData, YbeExamElement
+    AnalyticsQuestionMetaData, YbeExamElement, AnswerOption
 
 
 def write_ybe_file(ybe_exam, fname, minimal=True, copy_resources=False):
@@ -145,10 +145,7 @@ class YbeConversionVisitor:
             }
             return {question_types[value.__class__]: self.convert(value)}
 
-        if isinstance(value, MultipleResponseAnswer):
-            return {'answer': self.convert(value)}
-
-        if isinstance(value, MultipleChoiceAnswer):
+        if isinstance(value, AnswerOption):
             return {'answer': self.convert(value)}
 
         if isinstance(value, AnalyticsQuestionMetaData):
