@@ -17,7 +17,7 @@ using :py:func:`config_context`. Example:
 import os
 from copy import deepcopy
 
-import yaml
+from ruamel import yaml
 from contextlib import contextmanager
 from pkg_resources import resource_stream
 
