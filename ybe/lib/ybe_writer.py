@@ -32,7 +32,7 @@ def write_ybe_file(ybe_exam, fname, minimal=True, copy_resources=False):
     if not os.path.exists(dir := os.path.dirname(fname)):
         os.makedirs(dir)
 
-    with open(fname, 'w') as f:
+    with open(fname, 'w', encoding='utf-8') as f:
         f.write(write_ybe_string(ybe_exam, minimal=minimal))
 
     if copy_resources:

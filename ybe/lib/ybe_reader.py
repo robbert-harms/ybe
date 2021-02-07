@@ -27,7 +27,7 @@ def read_ybe_file(fname):
     Raises:
         ybe.lib.errors.YbeLoadingError: if the file could not be loaded due to syntax errors
     """
-    with open(fname, "r") as f:
+    with open(fname, 'r', encoding='utf-8') as f:
         ybe_exam = read_ybe_string(f.read())
         ybe_exam.resource_context = DirectoryContext(os.path.dirname(os.path.abspath(fname)))
         return ybe_exam

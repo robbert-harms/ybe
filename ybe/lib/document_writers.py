@@ -57,7 +57,7 @@ class Jinja2Converter(YbeConverter):
 
         out_file = self.get_jinja2_template().render(exam=ybe_exam)
 
-        with open(out_fname, 'w') as f:
+        with open(out_fname, 'w', encoding='utf-8') as f:
             f.write(out_file)
 
         if copy_resources:
@@ -323,7 +323,7 @@ class YbeToQTI_v1p2(YbeConverter):
             'resources': resources.items()
         }
         template = self.jinja2_env.get_template('imsmanifest.xml')
-        with open(os.path.join(dirname, 'imsmanifest.xml'), 'w') as f:
+        with open(os.path.join(dirname, 'imsmanifest.xml'), 'w', encoding='utf-8') as f:
             f.write(template.render(**template_items))
 
     def _write_assessment_meta(self, ybe_exam, dirname, assessment_identifier):
@@ -348,7 +348,7 @@ class YbeToQTI_v1p2(YbeConverter):
             'assignment_group_identifier': uuid.uuid4().hex
         }
         template = self.jinja2_env.get_template('assessment_meta.xml')
-        with open(os.path.join(dirname, assessment_identifier, 'assessment_meta.xml'), 'w') as f:
+        with open(os.path.join(dirname, assessment_identifier, 'assessment_meta.xml'), 'w', encoding='utf-8') as f:
             f.write(template.render(**template_items))
 
     def _write_questions_data(self, ybe_exam, dirname, assessment_identifier):
@@ -372,7 +372,8 @@ class YbeToQTI_v1p2(YbeConverter):
             'converted_questions': [converters[question.__class__](question) for question in ybe_exam.questions]
         }
         template = self.jinja2_env.get_template('assessment.xml')
-        with open(os.path.join(dirname, assessment_identifier, assessment_identifier + '.xml'), 'w') as f:
+        with open(os.path.join(dirname, assessment_identifier,
+                               assessment_identifier + '.xml'), 'w', encoding='utf-8') as f:
             f.write(template.render(**template_items))
 
     def _convert_multiple_choice(self, question):

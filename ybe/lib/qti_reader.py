@@ -69,7 +69,7 @@ def read_qti_dir(dir_name):
         raise ValueError(f'The provided path "{dir_name}" is not a directory.')
 
     def load_func(filename):
-        with open(os.path.join(dir_name, filename), 'rb') as f:
+        with open(os.path.join(dir_name, filename), 'rb', encoding='utf-8') as f:
             return f.read()
 
     ybe_exam = _load_qti_manifest(load_func)
