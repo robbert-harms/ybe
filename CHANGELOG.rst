@@ -2,6 +2,30 @@
 Changelog
 *********
 
+v0.3.4 (2021-02-07)
+===================
+This version should now convert QTI's and Ybe's correctly on Windows computers.
+
+Added
+-----
+- Adds default encoding as utf-8 to the file opening instruction.
+
+Changed
+-------
+- Changed the Yaml in the configuration class to ruamel.yaml.
+- Changed multi response and multi choice answer nodes to AnswerOption.
+
+Fixed
+-----
+- Fixed correct identifier reference.
+
+Other
+-----
+- Adds method is_plaintext is to TextData class.
+- Moved the conversion templates.
+- Beautified the QTI XML output.
+
+
 v0.3.3 (2021-02-03)
 ===================
 - Small name change in the QTI converter.
