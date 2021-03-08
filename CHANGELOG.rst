@@ -2,6 +2,14 @@
 Changelog
 *********
 
+v0.3.5 (2021-03-08)
+===================
+Other
+-----
+- Made the analytics load more rigidly (better node structure).
+- Using dacite library now when loading ybe files.
+
+
 v0.3.4 (2021-02-07)
 ===================
 This version should now convert QTI's and Ybe's correctly on Windows computers.
