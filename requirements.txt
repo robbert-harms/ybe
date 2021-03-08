@@ -3,3 +3,4 @@ lxml
 pypandoc
 jinja2
 beautifulsoup4
+dacite

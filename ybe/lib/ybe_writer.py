@@ -13,10 +13,10 @@ from ruamel.yaml import YAML
 from ruamel.yaml import scalarstring
 
 from ybe.__version__ import __version__
-from ybe.lib.data_types import TextHTML, TextMarkdown, TextPlain, TextData
+from ybe.lib.data_types import TextHTML, TextMarkdown, TextData
 from ybe.lib.utils import copy_ybe_resources
 from ybe.lib.ybe_nodes import YbeNode, MultipleChoice, MultipleResponse, OpenQuestion, TextOnly, \
-    AnalyticsQuestionMetaData, YbeExamElement, AnswerOption
+    YbeExamElement, AnswerOption, AnalyticsQuestionUsage, QuestionUsedInExam
 
 
 def write_ybe_file(ybe_exam, fname, minimal=True, copy_resources=False):
@@ -148,8 +148,11 @@ class YbeConversionVisitor:
         if isinstance(value, AnswerOption):
             return {'answer': self.convert(value)}
 
-        if isinstance(value, AnalyticsQuestionMetaData):
-            return value.analytics
+        if isinstance(value, AnalyticsQuestionUsage):
+            analytic_types = {
+                QuestionUsedInExam: 'exam',
+            }
+            return {analytic_types[value.__class__]: self.convert(value)}
 
         if isinstance(value, YbeNode):
             return self.convert(value)

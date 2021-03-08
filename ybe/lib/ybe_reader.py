@@ -5,14 +5,15 @@ __email__ = 'robbert@xkls.nl'
 __licence__ = 'GPL v3'
 
 import os
-from dataclasses import fields, is_dataclass, dataclass
-from typing import get_type_hints, get_args, get_origin, Any
+from typing import List
 
+import dacite
 from ruamel.yaml import YAML
 
-from ybe.lib.data_types import TextHTML, TextMarkdown, DirectoryContext
+from ybe.lib.data_types import TextHTML, TextMarkdown, DirectoryContext, TextData, TextPlain
 from ybe.lib.errors import YbeLoadingError
-from ybe.lib.ybe_nodes import YbeExam, MultipleChoice, OpenQuestion, MultipleResponse, TextOnly, AnswerOption
+from ybe.lib.ybe_nodes import YbeExam, MultipleChoice, OpenQuestion, MultipleResponse, TextOnly, AnswerOption, Question, \
+    AnalyticsQuestionUsage, QuestionUsedInExam
 
 
 def read_ybe_file(fname):
@@ -56,110 +57,53 @@ def read_ybe_string(ybe_str):
     if 'ybe_version' not in data:
         raise YbeLoadingError('Missing "ybe_version" specifier.')
 
-    result = YbeLoader().load(YbeExam, data)
-    return result
+    def _convert_text(input_data):
+        if isinstance(input_data, TextData):
+            return input_data
+        return TextPlain(input_data)
 
+    def _convert_answer_options(input_data):
+        result = []
+        for item in input_data:
+            if 'answer' in item:
+                result.append(dacite.from_dict(
+                    AnswerOption, item['answer'], config=dacite.Config(type_hooks={TextData: _convert_text})))
+        return result
 
-class YbeLoader:
+    def _convert_analytics(input_data):
+        analytic_types = {
+            'exam': QuestionUsedInExam,
+        }
+        result = []
+        for usage in input_data:
+            usage_type, usage_value = list(usage.items())[0]
+            result.append(dacite.from_dict(
+                analytic_types[usage_type], usage_value,
+                config=dacite.Config(type_hooks={TextData: _convert_text})))
+        return result
 
-    def __init__(self):
-        """Load the datastructure from an Ybe file.
+    def _convert_questions(input_data):
+        question_types = {
+            'multiple_choice': MultipleChoice,
+            'multiple_response': MultipleResponse,
+            'open': OpenQuestion,
+            'text_only': TextOnly
+        }
+        result = []
+        for question in input_data:
+            q_type, q_value = list(question.items())[0]
+            result.append(dacite.from_dict(
+                question_types[q_type], q_value,
+                config=dacite.Config(type_hooks={
+                    TextData: _convert_text,
+                    List[AnswerOption]: _convert_answer_options,
+                    List[AnalyticsQuestionUsage]: _convert_analytics
+                })))
+        return result
 
-        This interprets the node to see which fields it requires, and then loads those fields from the provided data.
-        """
-
-    def load(self, node, data):
-        """Visit a node and try to load the provided data.
-
-        Args:
-            node (Type[YbeNode]): the YbeNode to load
-            data (Any): the data to load as that node
-
-        Returns:
-            YbeNode: the YbeNode loaded with the provided data.
-        """
-        method = f'_load_node_{node.__name__}'
-        if hasattr(self, method):
-            return getattr(self, method)(node, data)
-
-        inputs = {}
-        for field in fields(node):
-            if not field.init:
-                continue
-            parse_result = self._load_field(node, field, data)
-            if isinstance(parse_result, ResultValue):
-                inputs[field.name] = parse_result.value
-        return node(**inputs)
-
-    def _load_field(self, parent_node, field, data):
-        method = f'_load_field_{parent_node.__name__}_{field.name}'
-        if hasattr(self, method):
-            return getattr(self, method)(parent_node, field, data)
-
-        field_name = field.name
-        field_type = get_type_hints(parent_node)[field_name]
-
-        if is_dataclass(field_type):
-            if field_name not in data:
-                return ResultMissing()
-            return ResultValue(self.load(field_type, data[field_name]))
-
-        if not isinstance(data, (list, dict)):
-            return ResultValue(data)
-
-        if field_name not in data:
-            return ResultMissing()
-
-        value = data[field_name]
-
-        if get_origin(field_type) == list and isinstance(value, list):
-            list_root_node = get_args(field_type)[0]
-            if is_dataclass(list_root_node):
-                return ResultValue([self.load(list_root_node, el) for el in value])
-        return ResultValue(value)
-
-    def _load_node_AnalyticsQuestionMetaData(self, node, data):
-        return node(data)
-
-    def _load_field_YbeExam_questions(self, parent_node, field, data):
-        if 'questions' in data:
-            question_types = {
-                'multiple_choice': MultipleChoice,
-                'multiple_response': MultipleResponse,
-                'open': OpenQuestion,
-                'text_only': TextOnly
-            }
-            result = []
-            for question in data['questions']:
-                q_type, q_value = list(question.items())[0]
-                result.append(self.load(question_types[q_type], q_value))
-            return ResultValue(result)
-        return ResultMissing()
-
-    def _load_field_MultipleChoice_answers(self, parent_node, field, data):
-        if 'answers' in data:
-            return ResultValue([self.load(AnswerOption, el['answer']) for el in data['answers']])
-        return ResultMissing()
-
-    def _load_field_MultipleResponse_answers(self, parent_node, field, data):
-        if 'answers' in data:
-            return ResultValue([self.load(AnswerOption, el['answer']) for el in data['answers']])
-        return ResultMissing()
-
-
-@dataclass
-class ParseResult:
-    """The parse result of parsing a field or node."""
-    value: Any = None
-
-
-@dataclass
-class ResultMissing(ParseResult):
-    """Sentinel value for missing values."""
-    pass
-
-
-@dataclass
-class ResultValue(ParseResult):
-    """Resulting parse value"""
-    pass
+    return dacite.from_dict(
+        YbeExam, data,
+        config=dacite.Config(type_hooks={
+            List[Question]: _convert_questions,
+            TextData: _convert_text
+        }))

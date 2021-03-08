@@ -158,7 +158,7 @@ class OpenQuestion(Question):
 
 
 @dataclass
-class TextOnly(YbeExamElement):
+class TextOnly(Question):
     pass
 
 
@@ -172,7 +172,7 @@ class AnswerOption(SimpleYbeNode):
 @dataclass
 class QuestionMetaData(SimpleYbeNode):
     general: GeneralQuestionMetaData = field(default_factory=lambda: GeneralQuestionMetaData())
-    analytics: AnalyticsQuestionMetaData = field(default_factory=lambda: AnalyticsQuestionMetaData())
+    analytics: List[AnalyticsQuestionUsage] = field(default_factory=list)
 
 
 @dataclass
@@ -203,9 +203,19 @@ class GeneralQuestionMetaData(SimpleYbeNode):
 
 
 @dataclass
-class AnalyticsQuestionMetaData(SimpleYbeNode):
-    """Analytics about this question, e.g. usage statistics."""
-    analytics: List[dict] = field(default_factory=list)
+class AnalyticsQuestionUsage(SimpleYbeNode):
+    """Represents the usage of this question"""
+
+
+@dataclass
+class QuestionUsedInExam(AnalyticsQuestionUsage):
+    """Represents the usage of this question in an exam.
+
+    This is loaded using the keyword ``exam``.
+    """
+    name: str = None
+    participants: int = None
+    nmr_correct: int = None
 
 
 @dataclass
