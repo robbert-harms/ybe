@@ -2,6 +2,18 @@
 Changelog
 *********
 
+v0.3.6 (2021-04-23)
+===================
+
+Fixed
+-----
+- Fixed QTI reader.
+
+Other
+-----
+- Updated the structure of the QTI reader.
+
+
 v0.3.5 (2021-03-08)
 ===================
 Other
